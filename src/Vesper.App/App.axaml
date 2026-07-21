@@ -3,8 +3,17 @@
              x:Class="Vesper.App.App"
              RequestedThemeVariant="Dark">
 
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="avares://VesperLauncher/Assets/Icons.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Application.Resources>
+
   <Application.Styles>
     <FluentTheme />
+    <StyleInclude Source="avares://VesperLauncher/Assets/Styles.axaml" />
   </Application.Styles>
 
 </Application>

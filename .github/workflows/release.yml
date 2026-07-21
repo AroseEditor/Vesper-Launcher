@@ -1,0 +1,240 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to build, without the leading v
+        required: true
+
+permissions:
+  contents: write
+  models: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  version:
+    name: Resolve version
+    runs-on: ubuntu-latest
+    outputs:
+      value: ${{ steps.resolve.outputs.value }}
+    steps:
+      - id: resolve
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "value=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          fi
+
+  launcher:
+    name: ${{ matrix.label }}
+    needs: version
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            label: Windows x64
+          - os: macos-latest
+            rid: osx-arm64
+            label: macOS Apple Silicon
+          - os: macos-latest
+            rid: osx-x64
+            label: macOS Intel
+          - os: ubuntu-latest
+            rid: linux-x64
+            label: Linux x64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish
+        shell: bash
+        run: |
+          dotnet publish src/Vesper.App/Vesper.App.csproj \
+            -c Release \
+            -r ${{ matrix.rid }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -p:IncludeNativeLibrariesForSelfExtract=true \
+            -p:Version=${{ needs.version.outputs.value }} \
+            -o publish/${{ matrix.rid }}
+
+      - name: Package Windows
+        if: startsWith(matrix.rid, 'win')
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          cp publish/${{ matrix.rid }}/VesperLauncher.exe \
+             artifacts/VesperLauncher-${{ needs.version.outputs.value }}-${{ matrix.rid }}.exe
+
+      - name: Package macOS
+        if: startsWith(matrix.rid, 'osx')
+        shell: bash
+        run: |
+          APP="build/Vesper Launcher.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          cp -R publish/${{ matrix.rid }}/. "$APP/Contents/MacOS/"
+          cp brand/icon.png "$APP/Contents/Resources/icon.png"
+          cat > "$APP/Contents/Info.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key><string>Vesper Launcher</string>
+            <key>CFBundleDisplayName</key><string>Vesper Launcher</string>
+            <key>CFBundleIdentifier</key><string>dev.vesper.launcher</string>
+            <key>CFBundleVersion</key><string>${{ needs.version.outputs.value }}</string>
+            <key>CFBundleShortVersionString</key><string>${{ needs.version.outputs.value }}</string>
+            <key>CFBundleExecutable</key><string>VesperLauncher</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>NSHighResolutionCapable</key><true/>
+          </dict>
+          </plist>
+          PLIST
+          chmod +x "$APP/Contents/MacOS/VesperLauncher"
+          mkdir -p artifacts
+          hdiutil create -volname "Vesper Launcher" -srcfolder build -ov -format UDZO \
+            "artifacts/VesperLauncher-${{ needs.version.outputs.value }}-${{ matrix.rid }}.dmg"
+
+      - name: Package Linux
+        if: startsWith(matrix.rid, 'linux')
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          tar -czf artifacts/VesperLauncher-${{ needs.version.outputs.value }}-${{ matrix.rid }}.tar.gz \
+            -C publish/${{ matrix.rid }} .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.rid }}
+          path: artifacts/*
+
+  mod:
+    name: Vesper mod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: exists
+        run: |
+          if [ -f mod/settings.gradle ] || [ -f mod/settings.gradle.kts ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-java@v4
+        if: steps.exists.outputs.found == 'true'
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build mod
+        if: steps.exists.outputs.found == 'true'
+        working-directory: mod
+        run: ./gradlew build --no-daemon
+
+      - uses: actions/upload-artifact@v4
+        if: steps.exists.outputs.found == 'true'
+        with:
+          name: mod
+          path: mod/*/build/libs/*.jar
+
+  release:
+    name: Draft release
+    needs: [version, launcher, mod]
+    if: always() && needs.launcher.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Collect changes
+        id: changes
+        run: |
+          PREVIOUS=$(git describe --tags --abbrev=0 "${GITHUB_REF_NAME}^" 2>/dev/null || echo "")
+          if [ -z "$PREVIOUS" ]; then
+            RANGE=""
+          else
+            RANGE="${PREVIOUS}..HEAD"
+          fi
+          {
+            echo 'log<<VESPER_EOF'
+            git log --no-merges --pretty=format:'- %s' $RANGE | head -200
+            echo ''
+            echo 'VESPER_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summarise with GitHub Models
+        id: summary
+        uses: actions/ai-inference@v1
+        continue-on-error: true
+        with:
+          model: openai/gpt-4o
+          system-prompt: |
+            You write release notes for Vesper Launcher, a Minecraft Java Edition launcher.
+            Write a section titled "About this release" describing what changed, for users.
+            Group changes under bold headings Added, Changed and Fixed, omitting any group
+            that has no entries. Use markdown bold and italics for emphasis.
+            Absolutely no emoji anywhere in the output. Do not invent changes that are not
+            in the commit list. Keep it under 300 words and write in plain prose.
+          prompt: |
+            Version: ${{ needs.version.outputs.value }}
+
+            Commits since the previous release:
+            ${{ steps.changes.outputs.log }}
+
+      - name: Compose body
+        id: body
+        run: |
+          {
+            echo 'text<<VESPER_EOF'
+            if [ -n "${{ steps.summary.outputs.response }}" ]; then
+              cat <<'SUMMARY'
+          ${{ steps.summary.outputs.response }}
+          SUMMARY
+            else
+              echo '## About this release'
+              echo ''
+              echo '${{ steps.changes.outputs.log }}'
+            fi
+            echo ''
+            echo '---'
+            echo ''
+            echo '**Downloads**'
+            echo ''
+            echo '- Windows: the `.exe`'
+            echo '- macOS: the `.dmg` for your chip, Apple Silicon or Intel'
+            echo '- Linux: the `.tar.gz`'
+            echo ''
+            echo '*macOS builds are unsigned. Right-click the app and choose Open the first time, or run* `xattr -dr com.apple.quarantine "/Applications/Vesper Launcher.app"`*.*'
+            echo ''
+            echo '*Not affiliated with Mojang or Microsoft.*'
+            echo 'VESPER_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: Vesper Launcher ${{ needs.version.outputs.value }}
+          tag_name: ${{ github.ref_name }}
+          body: ${{ steps.body.outputs.text }}
+          files: artifacts/**/*
