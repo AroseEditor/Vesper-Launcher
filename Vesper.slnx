@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Vesper.App/Vesper.App.csproj" />
+    <Project Path="src/Vesper.Core.Tests/Vesper.Core.Tests.csproj" />
+    <Project Path="src/Vesper.Core/Vesper.Core.csproj" />
+  </Folder>
+</Solution>
