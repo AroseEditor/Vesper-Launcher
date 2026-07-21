@@ -1,0 +1,11 @@
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+
+namespace Vesper.App.Views;
+
+public partial class ServersView : UserControl
+{
+    public ServersView() => InitializeComponent();
+
+    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+}

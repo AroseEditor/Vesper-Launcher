@@ -1,0 +1,205 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vesper.App.ViewModels"
+             xmlns:ver="using:Vesper.Core.Versions"
+             xmlns:prof="using:Vesper.Core.Profiles"
+             xmlns:ld="using:Vesper.Core.Loaders"
+             x:Class="Vesper.App.Views.PlayView"
+             x:DataType="vm:PlayViewModel">
+
+  <Grid ColumnDefinitions="*,340">
+
+    <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="26,22,20,22">
+
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,18">
+
+        <Border Grid.Column="0" Background="{DynamicResource BgCardBrush}"
+                BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                CornerRadius="11" Padding="4">
+          <StackPanel Orientation="Horizontal" Spacing="4">
+            <Button Classes="chip" Classes.on="{Binding IsVanilla}"
+                    Command="{Binding SetCategoryCommand}" CommandParameter="Vanilla">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
+                <TextBlock Text="Vanilla" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+            <Button Classes="chip" Classes.on="{Binding IsVesper}"
+                    Command="{Binding SetCategoryCommand}" CommandParameter="Vesper">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPalette}" />
+                <TextBlock Text="Vesper" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Border>
+
+        <TextBox Grid.Column="1" Classes="field" Margin="14,0"
+                 PlaceholderText="Search versions"
+                 Text="{Binding SearchText, Mode=TwoWay}" />
+
+        <Button Grid.Column="2" Classes="ghost" Command="{Binding BeginCreateProfileCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="9">
+            <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
+            <TextBlock Text="New Profile" VerticalAlignment="Center" FontSize="12.5" />
+          </StackPanel>
+        </Button>
+      </Grid>
+
+      <Panel Grid.Row="1">
+
+        <TextBlock Text="Loading versions" Classes="subtitle"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   IsVisible="{Binding IsLoadingVersions}" />
+
+        <ScrollViewer IsVisible="{Binding !IsLoadingVersions}">
+          <ItemsControl ItemsSource="{Binding Cards}" Margin="0,0,8,0">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:VersionCardViewModel">
+                <Button Classes="versionCard riseIn" Width="212" Height="132" Margin="0,0,14,14"
+                        Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).SelectCardCommand}"
+                        CommandParameter="{Binding}">
+                  <Border CornerRadius="16" ClipToBounds="True" Background="{Binding Background}">
+                    <Panel>
+                      <Border Background="#66000000" />
+                      <StackPanel VerticalAlignment="Bottom" Margin="16,0,16,15" Spacing="2">
+                        <TextBlock Text="{Binding Name}" FontSize="27" FontWeight="Bold"
+                                   Foreground="#FFFFFFFF" />
+                        <TextBlock Text="{Binding Subtitle}" FontSize="11.5"
+                                   Foreground="#CCFFFFFF" />
+                      </StackPanel>
+                    </Panel>
+                  </Border>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+      </Panel>
+    </Grid>
+
+    <Border Grid.Column="1" Background="{DynamicResource BgElevatedBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1,0,0,0">
+      <Grid RowDefinitions="*,Auto" Margin="20,22,20,20">
+
+        <ScrollViewer Grid.Row="0">
+          <StackPanel Spacing="16">
+
+            <TextBlock Classes="label" Text="SELECTED VERSION" />
+
+            <TextBlock Text="{Binding SelectedSummary}" Classes="title" FontSize="21"
+                       TextWrapping="Wrap" />
+
+            <TextBlock Text="{Binding CategoryBlurb}" Classes="subtitle" TextWrapping="Wrap" />
+
+            <StackPanel Spacing="7">
+              <TextBlock Classes="label" Text="MINECRAFT VERSION" />
+              <ComboBox Classes="field" ItemsSource="{Binding GroupVersions}"
+                        SelectedItem="{Binding SelectedVersion, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="ver:MinecraftVersionInfo">
+                    <TextBlock Text="{Binding Id}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+            </StackPanel>
+
+            <StackPanel Spacing="7">
+              <TextBlock Classes="label" Text="LOADER" />
+              <ComboBox Classes="field" ItemsSource="{Binding AvailableLoaders}"
+                        SelectedItem="{Binding SelectedLoader, Mode=TwoWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="7" IsVisible="{Binding NeedsLoaderVersion}">
+              <TextBlock Classes="label" Text="LOADER VERSION" />
+              <ComboBox Classes="field" ItemsSource="{Binding LoaderVersions}"
+                        SelectedItem="{Binding SelectedLoaderVersion, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="ld:LoaderVersion">
+                    <TextBlock Text="{Binding Label}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <TextBlock Text="Loading builds" Classes="subtitle" FontSize="11"
+                         IsVisible="{Binding IsLoadingLoaders}" />
+            </StackPanel>
+
+            <StackPanel Spacing="9" IsVisible="{Binding IsCreatingProfile}">
+              <TextBlock Classes="label" Text="PROFILE NAME" />
+              <TextBox Classes="field" PlaceholderText="Horror Mod"
+                       Text="{Binding NewProfileName, Mode=TwoWay}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Classes="primary" Padding="16,8" Content="Save"
+                        Command="{Binding ConfirmCreateProfileCommand}" />
+                <Button Classes="ghost" Content="Cancel"
+                        Command="{Binding CancelCreateProfileCommand}" />
+              </StackPanel>
+            </StackPanel>
+
+            <StackPanel Spacing="7">
+              <TextBlock Classes="label" Text="PROFILES" />
+              <ItemsControl ItemsSource="{Binding Profiles}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="prof:Profile">
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                      <Button Grid.Column="0" Classes="nav" Padding="10,8"
+                              Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).SelectProfileCommand}"
+                              CommandParameter="{Binding}">
+                        <StackPanel Orientation="Horizontal" Spacing="11">
+                          <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
+                          <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="{Binding Name}" FontSize="12.5"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" />
+                            <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}">
+                              <Run Text="{Binding MinecraftVersion}" />
+                              <Run Text="  " />
+                              <Run Text="{Binding ProfileLabel}" />
+                            </TextBlock>
+                          </StackPanel>
+                        </StackPanel>
+                      </Button>
+                      <Button Grid.Column="1" Classes="chrome" Width="30" Height="30"
+                              Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).DeleteProfileCommand}"
+                              CommandParameter="{Binding}">
+                        <Path Classes="icon" Width="13" Height="13" Data="{StaticResource IconTrash}" />
+                      </Button>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+          </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Spacing="12" Margin="0,16,0,0">
+          <ProgressBar Classes="slim" Value="{Binding Progress}" Maximum="100"
+                       IsVisible="{Binding IsBusy}" />
+          <Panel>
+            <Border Classes="glowPulse" CornerRadius="13" Margin="-6"
+                    Background="{DynamicResource AccentBrush}"
+                    IsVisible="{Binding HasSelection}" />
+            <Button Classes="primary" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    FontSize="15" Padding="0,16"
+                    IsEnabled="{Binding !IsBusy}"
+                    Command="{Binding LaunchCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="11">
+                <Path Classes="icon solid" Width="17" Height="17"
+                      Fill="{DynamicResource AccentContrastBrush}"
+                      Data="{StaticResource IconPlay}" />
+                <TextBlock Text="LAUNCH GAME" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </Panel>
+        </StackPanel>
+
+      </Grid>
+    </Border>
+  </Grid>
+</UserControl>

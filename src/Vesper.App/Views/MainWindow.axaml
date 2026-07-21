@@ -1,20 +1,19 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Vesper.App.ViewModels"
-        xmlns:inst="using:Vesper.Core.Profiles"
+        xmlns:views="using:Vesper.App.Views"
         xmlns:acc="using:Vesper.Core.Accounts"
-        xmlns:thm="using:Vesper.Core.Theming"
         x:Class="Vesper.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Vesper Launcher"
-        Width="1180" Height="740"
-        MinWidth="980" MinHeight="640"
+        Width="1240" Height="780"
+        MinWidth="1060" MinHeight="680"
         Background="{DynamicResource BgBaseBrush}"
+        WindowDecorations="BorderOnly"
         ExtendClientAreaToDecorationsHint="True"
-        ExtendClientAreaTitleBarHeightHint="-1"
         WindowStartupLocation="CenterScreen">
 
-  <Grid RowDefinitions="44,*">
+  <Grid RowDefinitions="46,*">
 
     <Border Grid.Row="0" Name="TitleBar"
             Background="{DynamicResource BgElevatedBrush}"
@@ -23,28 +22,34 @@
             PointerPressed="OnTitleBarPressed">
       <Grid ColumnDefinitions="Auto,*,Auto,Auto">
 
-        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10"
-                    Margin="16,0,0,0" VerticalAlignment="Center">
-          <Border Width="20" Height="20" CornerRadius="6"
-                  Background="{DynamicResource AccentBrush}" />
-          <TextBlock Text="Vesper Launcher" FontWeight="SemiBold" FontSize="13"
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="11"
+                    Margin="15,0,0,0" VerticalAlignment="Center">
+          <Image Source="avares://VesperLauncher/Assets/icon.png" Width="24" Height="24" />
+          <TextBlock Text="Vesper Launcher" FontWeight="SemiBold" FontSize="13.5"
                      Foreground="{DynamicResource TextPrimaryBrush}"
                      VerticalAlignment="Center" />
         </StackPanel>
 
         <Button Grid.Column="2" Name="AccountButton" Classes="chrome"
-                Width="NaN" Padding="10,0" Margin="0,0,8,0"
+                Width="NaN" Padding="9,0" Margin="0,6,10,6"
                 Command="{Binding Accounts.TogglePopupCommand}">
           <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
-            <Border Width="24" Height="24" CornerRadius="7"
+            <Border Width="26" Height="26" CornerRadius="8" ClipToBounds="True"
                     Background="{DynamicResource AccentDeepBrush}">
-              <TextBlock Text="{Binding Accounts.SelectedInitial}"
-                         FontSize="12" FontWeight="Bold"
-                         Foreground="{DynamicResource TextPrimaryBrush}"
-                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <Panel>
+                <TextBlock Text="{Binding Accounts.SelectedInitial}"
+                           FontSize="12" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           IsVisible="{Binding !Accounts.HasAvatar}" />
+                <Image Source="{Binding Accounts.SelectedAvatar}"
+                       Width="26" Height="26"
+                       RenderOptions.BitmapInterpolationMode="None"
+                       IsVisible="{Binding Accounts.HasAvatar}" />
+              </Panel>
             </Border>
             <StackPanel VerticalAlignment="Center">
-              <TextBlock Text="{Binding Accounts.SelectedName}" FontSize="12" FontWeight="SemiBold"
+              <TextBlock Text="{Binding Accounts.SelectedName}" FontSize="12.5" FontWeight="SemiBold"
                          Foreground="{DynamicResource TextPrimaryBrush}" />
               <TextBlock Text="{Binding Accounts.SelectedKindLabel}" FontSize="10"
                          Foreground="{DynamicResource TextFaintBrush}" />
@@ -70,10 +75,11 @@
                Placement="BottomEdgeAlignedRight"
                IsLightDismissEnabled="True"
                IsOpen="{Binding Accounts.IsOpen, Mode=TwoWay}">
-          <Border Background="{DynamicResource BgCardBrush}"
+          <Border Classes="popIn"
+                  Background="{DynamicResource BgCardBrush}"
                   BorderBrush="{DynamicResource BorderStrongBrush}"
-                  BorderThickness="1" CornerRadius="14" Padding="10"
-                  Width="320" Margin="0,6,0,0">
+                  BorderThickness="1" CornerRadius="15" Padding="11"
+                  Width="330" Margin="0,7,0,0">
             <StackPanel Spacing="8">
 
               <TextBlock Classes="label" Text="ACCOUNTS" Margin="6,4,0,0" />
@@ -81,12 +87,12 @@
               <ItemsControl ItemsSource="{Binding Accounts.Accounts}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="acc:Account">
-                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,2">
-                      <Button Grid.Column="0" Grid.ColumnSpan="2" Classes="nav" Padding="8"
+                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                      <Button Grid.Column="0" Classes="nav" Padding="8"
                               Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Accounts.SelectAccountCommand}"
                               CommandParameter="{Binding}">
-                        <StackPanel Orientation="Horizontal" Spacing="9">
-                          <Border Width="26" Height="26" CornerRadius="8"
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                          <Border Width="28" Height="28" CornerRadius="8"
                                   Background="{DynamicResource AccentDeepBrush}">
                             <TextBlock Text="{Binding Username[0]}" FontSize="12" FontWeight="Bold"
                                        Foreground="{DynamicResource TextPrimaryBrush}"
@@ -100,7 +106,7 @@
                           </StackPanel>
                         </StackPanel>
                       </Button>
-                      <Button Grid.Column="2" Classes="chrome" Width="32" Height="32"
+                      <Button Grid.Column="1" Classes="chrome" Width="32" Height="32"
                               Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Accounts.RemoveAccountCommand}"
                               CommandParameter="{Binding}">
                         <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconTrash}" />
@@ -112,28 +118,28 @@
 
               <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" Margin="0,4" />
 
-              <StackPanel IsVisible="{Binding !Accounts.IsAddingLocal}" Spacing="6">
+              <StackPanel IsVisible="{Binding !Accounts.IsAddingLocal}" Spacing="5">
                 <Button Classes="nav" Command="{Binding Accounts.AddMicrosoftCommand}"
                         IsEnabled="{Binding !Accounts.IsSigningIn}">
-                  <StackPanel Orientation="Horizontal" Spacing="10">
+                  <StackPanel Orientation="Horizontal" Spacing="11">
                     <Path Classes="icon" Data="{StaticResource IconPlus}" />
                     <TextBlock Text="Add Microsoft account" VerticalAlignment="Center" FontSize="12.5" />
                   </StackPanel>
                 </Button>
                 <Button Classes="nav" Command="{Binding Accounts.BeginAddLocalCommand}">
-                  <StackPanel Orientation="Horizontal" Spacing="10">
+                  <StackPanel Orientation="Horizontal" Spacing="11">
                     <Path Classes="icon" Data="{StaticResource IconPlus}" />
                     <TextBlock Text="Add local account" VerticalAlignment="Center" FontSize="12.5" />
                   </StackPanel>
                 </Button>
               </StackPanel>
 
-              <StackPanel IsVisible="{Binding Accounts.IsAddingLocal}" Spacing="8" Margin="4">
+              <StackPanel IsVisible="{Binding Accounts.IsAddingLocal}" Spacing="9" Margin="4">
                 <TextBlock Classes="label" Text="USERNAME" />
                 <TextBox Classes="field" PlaceholderText="Any username you like"
                          Text="{Binding Accounts.NewLocalUsername, Mode=TwoWay}" />
                 <StackPanel Orientation="Horizontal" Spacing="8">
-                  <Button Classes="primary" Padding="16,8" Content="Create"
+                  <Button Classes="primary" Padding="17,8" Content="Create"
                           Command="{Binding Accounts.ConfirmAddLocalCommand}" />
                   <Button Classes="ghost" Content="Cancel"
                           Command="{Binding Accounts.CancelAddLocalCommand}" />
@@ -141,11 +147,11 @@
               </StackPanel>
 
               <Border IsVisible="{Binding Accounts.DeviceCode, Converter={x:Static ObjectConverters.IsNotNull}}"
-                      Background="{DynamicResource BgElevatedBrush}" CornerRadius="10" Padding="12">
+                      Background="{DynamicResource BgElevatedBrush}" CornerRadius="11" Padding="13">
                 <StackPanel Spacing="6">
                   <TextBlock Classes="label" Text="ENTER THIS CODE" />
                   <SelectableTextBlock Text="{Binding Accounts.DeviceCode}"
-                                       FontSize="20" FontWeight="Bold"
+                                       FontSize="21" FontWeight="Bold"
                                        Foreground="{DynamicResource AccentBrush}" />
                   <SelectableTextBlock Text="{Binding Accounts.DeviceVerificationUri}"
                                        FontSize="11"
@@ -165,231 +171,89 @@
       </Grid>
     </Border>
 
-    <Grid Grid.Row="1" ColumnDefinitions="224,*">
+    <Grid Grid.Row="1" ColumnDefinitions="228,*">
 
       <Border Grid.Column="0" Background="{DynamicResource BgElevatedBrush}"
               BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,1,0">
-        <Grid RowDefinitions="*,Auto" Margin="12">
-          <StackPanel Grid.Row="0" Spacing="4">
+        <Grid RowDefinitions="*,Auto" Margin="12,14,12,12">
+          <StackPanel Grid.Row="0" Spacing="3">
 
-            <Button Classes="nav" Classes.active="{Binding IsPlayTab}"
-                    Command="{Binding SelectTabCommand}" CommandParameter="Play">
-              <StackPanel Orientation="Horizontal" Spacing="12">
-                <Path Classes="icon solid" Data="{StaticResource IconPlay}" />
-                <TextBlock Text="Play" VerticalAlignment="Center" FontSize="13.5" />
-              </StackPanel>
-            </Button>
+            <Grid ColumnDefinitions="3,*">
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsPlayTab}" Margin="0,9" />
+              <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsPlayTab}"
+                      Command="{Binding SelectTabCommand}" CommandParameter="Play">
+                <StackPanel Orientation="Horizontal" Spacing="13">
+                  <Path Classes="icon solid" Data="{StaticResource IconPlay}" />
+                  <TextBlock Text="Play" VerticalAlignment="Center" FontSize="13.5" />
+                </StackPanel>
+              </Button>
+            </Grid>
 
-            <Button Classes="nav" Classes.active="{Binding IsServersTab}"
-                    Command="{Binding SelectTabCommand}" CommandParameter="Servers">
-              <StackPanel Orientation="Horizontal" Spacing="12">
-                <Path Classes="icon" Data="{StaticResource IconServer}" />
-                <TextBlock Text="Servers" VerticalAlignment="Center" FontSize="13.5" />
-              </StackPanel>
-            </Button>
+            <Grid ColumnDefinitions="3,*">
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsSkinsTab}" Margin="0,9" />
+              <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsSkinsTab}"
+                      Command="{Binding SelectTabCommand}" CommandParameter="Skins">
+                <StackPanel Orientation="Horizontal" Spacing="13">
+                  <Path Classes="icon" Data="{StaticResource IconUser}" />
+                  <TextBlock Text="Skins" VerticalAlignment="Center" FontSize="13.5" />
+                </StackPanel>
+              </Button>
+            </Grid>
 
-            <Button Classes="nav" Classes.active="{Binding IsSettingsTab}"
-                    Command="{Binding SelectTabCommand}" CommandParameter="Settings">
-              <StackPanel Orientation="Horizontal" Spacing="12">
-                <Path Classes="icon" Data="{StaticResource IconSettings}" />
-                <TextBlock Text="Settings" VerticalAlignment="Center" FontSize="13.5" />
-              </StackPanel>
-            </Button>
+            <Grid ColumnDefinitions="3,*">
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsServersTab}" Margin="0,9" />
+              <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsServersTab}"
+                      Command="{Binding SelectTabCommand}" CommandParameter="Servers">
+                <StackPanel Orientation="Horizontal" Spacing="13">
+                  <Path Classes="icon" Data="{StaticResource IconServer}" />
+                  <TextBlock Text="Servers" VerticalAlignment="Center" FontSize="13.5" />
+                </StackPanel>
+              </Button>
+            </Grid>
+
+            <Grid ColumnDefinitions="3,*">
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsSettingsTab}" Margin="0,9" />
+              <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsSettingsTab}"
+                      Command="{Binding SelectTabCommand}" CommandParameter="Settings">
+                <StackPanel Orientation="Horizontal" Spacing="13">
+                  <Path Classes="icon" Data="{StaticResource IconSettings}" />
+                  <TextBlock Text="Settings" VerticalAlignment="Center" FontSize="13.5" />
+                </StackPanel>
+              </Button>
+            </Grid>
 
           </StackPanel>
 
-          <StackPanel Grid.Row="1" Spacing="2" Margin="6,0,0,4">
+          <StackPanel Grid.Row="1" Spacing="3" Margin="6,0,0,2">
             <TextBlock Text="{Binding StatusText}" FontSize="11" TextWrapping="Wrap"
+                       MaxLines="3" TextTrimming="CharacterEllipsis"
                        Foreground="{DynamicResource TextMutedBrush}" />
-            <TextBlock Text="{Binding Version, StringFormat='Version {0}'}" FontSize="10"
+            <TextBlock Text="{Binding Version, StringFormat='Vesper {0}'}" FontSize="10"
                        Foreground="{DynamicResource TextFaintBrush}" />
           </StackPanel>
         </Grid>
       </Border>
 
-      <Panel Grid.Column="1">
+      <TransitioningContentControl Grid.Column="1" Content="{Binding CurrentPage}">
+        <TransitioningContentControl.PageTransition>
+          <CrossFade Duration="0:0:0.22" />
+        </TransitioningContentControl.PageTransition>
+        <TransitioningContentControl.DataTemplates>
+          <DataTemplate DataType="vm:PlayViewModel">
+            <views:PlayView />
+          </DataTemplate>
+          <DataTemplate DataType="vm:SkinsViewModel">
+            <views:SkinsView />
+          </DataTemplate>
+          <DataTemplate DataType="vm:ServersViewModel">
+            <views:ServersView />
+          </DataTemplate>
+          <DataTemplate DataType="vm:SettingsViewModel">
+            <views:SettingsView />
+          </DataTemplate>
+        </TransitioningContentControl.DataTemplates>
+      </TransitioningContentControl>
 
-        <Grid IsVisible="{Binding IsPlayTab}" ColumnDefinitions="280,*" Margin="0">
-
-          <Border Grid.Column="0" Background="{DynamicResource BgBaseBrush}"
-                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,1,0">
-            <Grid RowDefinitions="Auto,*,Auto" Margin="14">
-              <TextBlock Grid.Row="0" Classes="label" Text="PROFILES" Margin="4,4,0,10" />
-
-              <ScrollViewer Grid.Row="1">
-                <ItemsControl ItemsSource="{Binding Profiles}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="inst:Profile">
-                      <Button Classes="nav" Margin="0,2"
-                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectProfileCommand}"
-                              CommandParameter="{Binding}">
-                        <StackPanel Orientation="Horizontal" Spacing="11">
-                          <Path Classes="icon" Data="{StaticResource IconBox}" />
-                          <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Name}" FontSize="13"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}">
-                              <Run Text="{Binding MinecraftVersion}" />
-                              <Run Text="  " />
-                              <Run Text="{Binding ProfileLabel}" />
-                            </TextBlock>
-                          </StackPanel>
-                        </StackPanel>
-                      </Button>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </ScrollViewer>
-
-              <StackPanel Grid.Row="2" Spacing="7" Margin="0,12,0,0">
-                <TextBox Classes="field" PlaceholderText="Profile name"
-                         Text="{Binding NewProfileName, Mode=TwoWay}" />
-                <TextBox Classes="field" PlaceholderText="Version"
-                         Text="{Binding NewProfileVersion, Mode=TwoWay}" />
-                <Button Classes="ghost" HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Center"
-                        Command="{Binding CreateProfileCommand}">
-                  <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
-                    <TextBlock Text="New profile" FontSize="12.5" />
-                  </StackPanel>
-                </Button>
-              </StackPanel>
-            </Grid>
-          </Border>
-
-          <Grid Grid.Column="1" RowDefinitions="*,Auto" Margin="34,28,34,28">
-
-            <StackPanel Grid.Row="0" VerticalAlignment="Center" Spacing="10">
-              <TextBlock Classes="label" Text="SELECTED INSTANCE" />
-              <TextBlock Classes="title" FontSize="34"
-                         Text="{Binding SelectedProfile.Name, FallbackValue='No profile yet'}" />
-              <StackPanel Orientation="Horizontal" Spacing="10">
-                <Border Background="{DynamicResource BgCardBrush}" CornerRadius="8" Padding="10,5">
-                  <TextBlock FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                             Text="{Binding SelectedProfile.MinecraftVersion, FallbackValue='—'}" />
-                </Border>
-                <Border Background="{DynamicResource BgCardBrush}" CornerRadius="8" Padding="10,5">
-                  <TextBlock FontSize="12" Foreground="{DynamicResource AccentBrush}"
-                             Text="{Binding SelectedProfile.ProfileLabel, FallbackValue='—'}" />
-                </Border>
-              </StackPanel>
-            </StackPanel>
-
-            <StackPanel Grid.Row="1" Spacing="14">
-              <ProgressBar Value="{Binding Progress}" Maximum="100" Height="4"
-                           IsVisible="{Binding IsBusy}"
-                           Foreground="{DynamicResource AccentBrush}"
-                           Background="{DynamicResource BgCardBrush}" />
-              <Button Classes="primary" HorizontalAlignment="Stretch"
-                      HorizontalContentAlignment="Center"
-                      FontSize="17" Padding="0,18"
-                      IsEnabled="{Binding !IsBusy}"
-                      Command="{Binding LaunchCommand}">
-                <StackPanel Orientation="Horizontal" Spacing="12">
-                  <Path Classes="icon solid" Width="18" Height="18"
-                        Fill="{DynamicResource AccentContrastBrush}"
-                        Data="{StaticResource IconPlay}" />
-                  <TextBlock Text="PLAY" VerticalAlignment="Center" />
-                </StackPanel>
-              </Button>
-            </StackPanel>
-
-          </Grid>
-        </Grid>
-
-        <ScrollViewer IsVisible="{Binding IsServersTab}">
-          <StackPanel Margin="34,28" Spacing="18">
-            <TextBlock Classes="title" Text="Servers" />
-            <TextBlock Classes="subtitle" TextWrapping="Wrap"
-                       Text="Run a Paper or Purpur server locally, manage plugins and mods, and expose it over a playit.gg tunnel or your own domain." />
-            <Border Classes="card">
-              <StackPanel Spacing="12">
-                <TextBlock Classes="label" Text="CONTROLS" />
-                <StackPanel Orientation="Horizontal" Spacing="9">
-                  <Button Classes="primary" Padding="16,10" IsEnabled="False">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Path Classes="icon solid" Width="14" Height="14"
-                            Fill="{DynamicResource AccentContrastBrush}"
-                            Data="{StaticResource IconPlay}" />
-                      <TextBlock Text="Start" />
-                    </StackPanel>
-                  </Button>
-                  <Button Classes="ghost" IsEnabled="False">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconStop}" />
-                      <TextBlock Text="Stop" />
-                    </StackPanel>
-                  </Button>
-                  <Button Classes="ghost" IsEnabled="False">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconRefresh}" />
-                      <TextBlock Text="Restart" />
-                    </StackPanel>
-                  </Button>
-                  <Button Classes="ghost" IsEnabled="False">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                      <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconGlobe}" />
-                      <TextBlock Text="Tunnel" />
-                    </StackPanel>
-                  </Button>
-                </StackPanel>
-                <TextBlock Classes="subtitle" Text="Server management lands in the next milestone." />
-              </StackPanel>
-            </Border>
-          </StackPanel>
-        </ScrollViewer>
-
-        <ScrollViewer IsVisible="{Binding IsSettingsTab}">
-          <StackPanel Margin="34,28" Spacing="18" MaxWidth="720" HorizontalAlignment="Left">
-            <TextBlock Classes="title" Text="Settings" />
-
-            <Border Classes="card">
-              <StackPanel Spacing="12">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <Path Classes="icon" Data="{StaticResource IconPalette}" />
-                  <TextBlock Text="Theme" FontSize="15" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextPrimaryBrush}" />
-                </StackPanel>
-                <TextBlock Classes="subtitle"
-                           Text="Every surface binds to theme tokens, so changing a theme recolours the whole app instantly." />
-                <ItemsControl ItemsSource="{Binding Themes}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="thm:VesperTheme">
-                      <Button Classes="nav" Margin="0,2"
-                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ApplyThemeCommand}"
-                              CommandParameter="{Binding}">
-                        <StackPanel Orientation="Horizontal" Spacing="12">
-                          <Path Classes="icon" Data="{StaticResource IconPalette}" />
-                          <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" />
-                        </StackPanel>
-                      </Button>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-            </Border>
-
-            <Border Classes="card">
-              <StackPanel Spacing="10">
-                <StackPanel Orientation="Horizontal" Spacing="10">
-                  <Path Classes="icon" Data="{StaticResource IconFolder}" />
-                  <TextBlock Text="Minecraft" FontSize="15" FontWeight="SemiBold"
-                             Foreground="{DynamicResource TextPrimaryBrush}" />
-                </StackPanel>
-                <TextBlock Classes="label" Text="INSTALL DIRECTORY" />
-                <SelectableTextBlock Text="{Binding RootDirectory}" FontSize="12"
-                                     TextWrapping="Wrap"
-                                     Foreground="{DynamicResource TextMutedBrush}" />
-                <TextBlock Classes="subtitle"
-                           Text="Game files, libraries and assets stay here. Nothing is written to the default .minecraft folder." />
-              </StackPanel>
-            </Border>
-
-          </StackPanel>
-        </ScrollViewer>
-
-      </Panel>
     </Grid>
   </Grid>
 </Window>

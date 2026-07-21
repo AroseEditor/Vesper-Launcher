@@ -1,0 +1,143 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vesper.App.ViewModels"
+             xmlns:thm="using:Vesper.Core.Theming"
+             x:Class="Vesper.App.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="30,24" Spacing="18" MaxWidth="820" HorizontalAlignment="Left">
+
+      <TextBlock Classes="title" Text="Settings" />
+
+      <Border Classes="card hoverable">
+        <StackPanel Spacing="13">
+          <StackPanel Orientation="Horizontal" Spacing="11">
+            <Path Classes="icon" Data="{StaticResource IconPalette}" />
+            <TextBlock Text="Theme" FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
+          <TextBlock Classes="subtitle" TextWrapping="Wrap"
+                     Text="Every surface binds to theme tokens, so switching recolours the whole app instantly. Drop your own JSON theme in the themes folder to add more." />
+          <ItemsControl ItemsSource="{Binding Themes}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="thm:VesperTheme">
+                <Button Classes="nav" Margin="0,2" Padding="11,9"
+                        Command="{Binding $parent[UserControl].((vm:SettingsViewModel)DataContext).ApplyThemeCommand}"
+                        CommandParameter="{Binding}">
+                  <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Path Classes="icon" Data="{StaticResource IconPalette}" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontSize="13" />
+                  </StackPanel>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card hoverable">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="11">
+            <Path Classes="icon" Data="{StaticResource IconBox}" />
+            <TextBlock Text="Minecraft" FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
+
+          <StackPanel Spacing="7">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0" Classes="label" Text="MEMORY" />
+              <TextBlock Grid.Column="1" FontSize="11.5"
+                         Foreground="{DynamicResource AccentBrush}"
+                         Text="{Binding MaximumRamMb, StringFormat='{}{0} MB'}" />
+            </Grid>
+            <Slider Minimum="1024" Maximum="{Binding TotalRamMb}" TickFrequency="512"
+                    IsSnapToTickEnabled="True"
+                    Value="{Binding MaximumRamMb, Mode=TwoWay}" />
+          </StackPanel>
+
+          <StackPanel Spacing="7">
+            <TextBlock Classes="label" Text="RESOLUTION" />
+            <StackPanel Orientation="Horizontal" Spacing="9">
+              <TextBox Classes="field" Width="110" Text="{Binding ScreenWidth, Mode=TwoWay}" />
+              <TextBox Classes="field" Width="110" Text="{Binding ScreenHeight, Mode=TwoWay}" />
+              <CheckBox Content="Fullscreen" IsChecked="{Binding FullScreen, Mode=TwoWay}"
+                        Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card hoverable">
+        <StackPanel Spacing="14">
+          <StackPanel Orientation="Horizontal" Spacing="11">
+            <Path Classes="icon" Data="{StaticResource IconServer}" />
+            <TextBlock Text="Server" FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
+          <StackPanel Spacing="7">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Grid.Column="0" Classes="label" Text="SERVER MEMORY" />
+              <TextBlock Grid.Column="1" FontSize="11.5"
+                         Foreground="{DynamicResource AccentBrush}"
+                         Text="{Binding ServerRamMb, StringFormat='{}{0} MB'}" />
+            </Grid>
+            <Slider Minimum="512" Maximum="{Binding TotalRamMb}" TickFrequency="512"
+                    IsSnapToTickEnabled="True"
+                    Value="{Binding ServerRamMb, Mode=TwoWay}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card hoverable">
+        <StackPanel Spacing="12">
+          <StackPanel Orientation="Horizontal" Spacing="11">
+            <Path Classes="icon" Data="{StaticResource IconUser}" />
+            <TextBlock Text="Accounts" FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
+          <TextBlock Classes="label" Text="CUSTOM MICROSOFT CLIENT ID" />
+          <TextBox Classes="field" PlaceholderText="Leave empty to use the built-in one"
+                   Text="{Binding CustomClientId, Mode=TwoWay}" />
+          <TextBlock Classes="subtitle" FontSize="11.5" TextWrapping="Wrap"
+                     Text="Only needed if you registered your own Azure application. Local accounts never use this." />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card hoverable">
+        <StackPanel Spacing="11">
+          <StackPanel Orientation="Horizontal" Spacing="11">
+            <Path Classes="icon" Data="{StaticResource IconFolder}" />
+            <TextBlock Text="Storage" FontSize="15" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+          </StackPanel>
+          <TextBlock Classes="label" Text="INSTALL DIRECTORY" />
+          <SelectableTextBlock Text="{Binding RootDirectory}" FontSize="12" TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+          <Button Classes="ghost" HorizontalAlignment="Left"
+                  Command="{Binding OpenRootDirectoryCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="9">
+              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconFolder}" />
+              <TextBlock Text="Open folder" FontSize="12.5" />
+            </StackPanel>
+          </Button>
+          <TextBlock Classes="subtitle" FontSize="11.5" TextWrapping="Wrap"
+                     Text="Game files, libraries and assets stay here. Nothing is written to the default .minecraft folder." />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="6">
+          <TextBlock Classes="label" Text="ABOUT" />
+          <TextBlock FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                     Text="{Binding Version, StringFormat='Vesper Launcher {0}'}" />
+          <TextBlock FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
+                     Text="{Binding Author, StringFormat='Built by {0}'}" />
+          <TextBlock Classes="subtitle" FontSize="11" TextWrapping="Wrap"
+                     Text="Not affiliated with Mojang Studios or Microsoft. Minecraft is a trademark of Mojang Studios." />
+        </StackPanel>
+      </Border>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

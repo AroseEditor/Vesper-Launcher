@@ -13,6 +13,14 @@ public partial class MainWindow : Window
         DataContext = new MainWindowViewModel();
     }
 
+    protected override async void OnLoaded(RoutedEventArgs e)
+    {
+        base.OnLoaded(e);
+
+        if (DataContext is MainWindowViewModel model)
+            await model.InitializeAsync();
+    }
+
     private void OnTitleBarPressed(object? sender, PointerPressedEventArgs e)
     {
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

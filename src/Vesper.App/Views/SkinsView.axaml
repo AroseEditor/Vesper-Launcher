@@ -1,0 +1,160 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vesper.App.ViewModels"
+             xmlns:acc="using:Vesper.Core.Accounts"
+             xmlns:controls="using:Vesper.App.Controls"
+             xmlns:sys="using:System"
+             x:Class="Vesper.App.Views.SkinsView"
+             x:DataType="vm:SkinsViewModel">
+
+  <Grid ColumnDefinitions="*,320">
+
+    <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="26,22,20,22">
+
+      <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,14">
+        <TextBlock Classes="title" Text="Skins" />
+        <TextBlock Classes="subtitle" Text="{Binding StatusText}" TextWrapping="Wrap" />
+      </StackPanel>
+
+      <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
+        <Panel Background="{DynamicResource BgBaseBrush}">
+          <controls:SkinViewport Name="Viewport"
+                                 Skin="{Binding Pixels}"
+                                 Slim="{Binding Slim}"
+                                 ShowOverlay="{Binding ShowOverlay}"
+                                 PaintMode="{Binding PaintMode}" />
+          <TextBlock Text="Drag to rotate" Classes="subtitle" FontSize="11"
+                     HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14"
+                     IsVisible="{Binding !PaintMode}" />
+          <TextBlock Text="Click the model to paint" Classes="subtitle" FontSize="11"
+                     Foreground="{DynamicResource AccentBrush}"
+                     HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,14"
+                     IsVisible="{Binding PaintMode}" />
+        </Panel>
+      </Border>
+    </Grid>
+
+    <Border Grid.Column="1" Background="{DynamicResource BgElevatedBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1,0,0,0">
+      <ScrollViewer>
+        <StackPanel Margin="20,22" Spacing="18">
+
+          <StackPanel Spacing="7">
+            <TextBlock Classes="label" Text="ACCOUNT" />
+            <ItemsControl ItemsSource="{Binding Accounts}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="acc:Account">
+                  <Button Classes="nav" Margin="0,2" Padding="10,8"
+                          Command="{Binding $parent[UserControl].((vm:SkinsViewModel)DataContext).SelectAccountCommand}"
+                          CommandParameter="{Binding}">
+                    <StackPanel Orientation="Horizontal" Spacing="11">
+                      <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconUser}" />
+                      <TextBlock Text="{Binding Username}" VerticalAlignment="Center" FontSize="12.5" />
+                    </StackPanel>
+                  </Button>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+
+          <StackPanel Spacing="9">
+            <TextBlock Classes="label" Text="TOOLS" />
+            <UniformGrid Columns="2" ColumnSpacing="8" RowSpacing="8">
+              <Button Classes="ghost" Classes.on="{Binding PaintMode}"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding TogglePaintCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPalette}" />
+                  <TextBlock Text="Paint" FontSize="12" />
+                </StackPanel>
+              </Button>
+              <Button Classes="ghost" HorizontalContentAlignment="Center"
+                      Command="{Binding ToggleEraseCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconClose}" />
+                  <TextBlock Text="Erase" FontSize="12" />
+                </StackPanel>
+              </Button>
+              <Button Classes="ghost" HorizontalContentAlignment="Center"
+                      IsEnabled="{Binding CanUndo}"
+                      Command="{Binding UndoCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Undo" FontSize="12" />
+                </StackPanel>
+              </Button>
+              <Button Classes="ghost" HorizontalContentAlignment="Center"
+                      Command="{Binding ToggleModelCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconUser}" />
+                  <TextBlock Text="{Binding ModelLabel}" FontSize="12" />
+                </StackPanel>
+              </Button>
+            </UniformGrid>
+          </StackPanel>
+
+          <StackPanel Spacing="9">
+            <TextBlock Classes="label" Text="COLOUR" />
+            <ItemsControl ItemsSource="{Binding Palette}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="sys:String">
+                  <Button Width="34" Height="34" Margin="0,0,7,7" CornerRadius="9"
+                          BorderThickness="1"
+                          BorderBrush="{DynamicResource BorderStrongBrush}"
+                          Background="{Binding}"
+                          Command="{Binding $parent[UserControl].((vm:SkinsViewModel)DataContext).PickColorCommand}"
+                          CommandParameter="{Binding}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBox Classes="field" Text="{Binding BrushColor, Mode=TwoWay}"
+                     PlaceholderText="#B57EDC" />
+          </StackPanel>
+
+          <StackPanel Spacing="7">
+            <TextBlock Classes="label" Text="BRUSH SIZE" />
+            <Slider Minimum="1" Maximum="4" TickFrequency="1" IsSnapToTickEnabled="True"
+                    Value="{Binding BrushSize, Mode=TwoWay}" />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Classes="label" Text="SKIN" />
+            <Button Classes="ghost" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Click="OnUpload">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconImage}" />
+                <TextBlock Text="Upload a skin" FontSize="12.5" />
+              </StackPanel>
+            </Button>
+            <Button Classes="ghost" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    Command="{Binding ResetToDefaultCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconRefresh}" />
+                <TextBlock Text="Reset to default" FontSize="12.5" />
+              </StackPanel>
+            </Button>
+            <CheckBox Content="Show outer layer" IsChecked="{Binding ShowOverlay, Mode=TwoWay}"
+                      Foreground="{DynamicResource TextMutedBrush}" />
+            <Button Classes="primary" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center" Padding="0,13"
+                    Command="{Binding SaveCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Path Classes="icon solid" Width="15" Height="15"
+                      Fill="{DynamicResource AccentContrastBrush}"
+                      Data="{StaticResource IconCheck}" />
+                <TextBlock Text="Save skin" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+        </StackPanel>
+      </ScrollViewer>
+    </Border>
+  </Grid>
+</UserControl>

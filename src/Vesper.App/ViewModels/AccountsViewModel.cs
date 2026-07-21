@@ -1,14 +1,19 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Vesper.App.Controls;
 using Vesper.Core.Accounts;
 using Vesper.Core.Accounts.Microsoft;
+using Vesper.Core.Skins;
+using Vesper.Core.Storage;
 
 namespace Vesper.App.ViewModels;
 
 public partial class AccountsViewModel : ObservableObject
 {
     private readonly AccountManager _manager;
+    private readonly SkinStore _skins;
 
     [ObservableProperty]
     private bool _isOpen;
@@ -34,11 +39,17 @@ public partial class AccountsViewModel : ObservableObject
     [ObservableProperty]
     private string? _deviceVerificationUri;
 
-    public AccountsViewModel(AccountManager manager)
+    [ObservableProperty]
+    private Bitmap? _selectedAvatar;
+
+    public AccountsViewModel(AccountManager manager, VesperPaths? paths = null)
     {
         _manager = manager;
+        _skins = new SkinStore(paths ?? VesperPaths.Resolve());
         Refresh();
     }
+
+    public bool HasAvatar => SelectedAvatar is not null;
 
     public ObservableCollection<Account> Accounts { get; } = [];
 
@@ -175,5 +186,32 @@ public partial class AccountsViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectedName));
         OnPropertyChanged(nameof(SelectedKindLabel));
         OnPropertyChanged(nameof(SelectedInitial));
+        RefreshAvatar(value);
+    }
+
+    partial void OnSelectedAvatarChanged(Bitmap? value) => OnPropertyChanged(nameof(HasAvatar));
+
+    private void RefreshAvatar(Account? account)
+    {
+        SelectedAvatar?.Dispose();
+        SelectedAvatar = null;
+
+        if (account is null)
+            return;
+
+        try
+        {
+            var stored = _skins.ReadSkin(account.Id);
+            var pixels = stored is not null
+                ? SkinImage.Decode(stored)
+                : SkinStore.CreateDefaultSkin(account.SkinModel == SkinModel.Slim);
+
+            if (pixels is not null)
+                SelectedAvatar = SkinImage.RenderHead(pixels);
+        }
+        catch (Exception)
+        {
+            SelectedAvatar = null;
+        }
     }
 }
