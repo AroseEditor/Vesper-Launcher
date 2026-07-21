@@ -12,7 +12,9 @@
 
   <PropertyGroup>
     <Product>Vesper Launcher</Product>
-    <Company>Vesper</Company>
+    <Authors>ayush.ue5</Authors>
+    <Company>ayush.ue5</Company>
+    <Copyright>Copyright (c) 2026 ayush.ue5</Copyright>
     <Version>0.1.0</Version>
   </PropertyGroup>
 

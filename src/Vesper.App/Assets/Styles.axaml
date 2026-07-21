@@ -1,6 +1,11 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+  <Styles.Resources>
+    <CubicEaseOut x:Key="EaseOut" />
+    <CubicEaseInOut x:Key="EaseInOut" />
+  </Styles.Resources>
+
   <Style Selector="Path.icon">
     <Setter Property="Stroke" Value="{DynamicResource TextMutedBrush}" />
     <Setter Property="StrokeThickness" Value="1.7" />
@@ -10,6 +15,12 @@
     <Setter Property="Stretch" Value="Uniform" />
     <Setter Property="Width" Value="18" />
     <Setter Property="Height" Value="18" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Stroke" Duration="0:0:0.18" />
+        <BrushTransition Property="Fill" Duration="0:0:0.18" />
+      </Transitions>
+    </Setter>
   </Style>
 
   <Style Selector="Path.icon.solid">
@@ -20,20 +31,39 @@
   <Style Selector="Button.nav">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Padding" Value="14,11" />
+    <Setter Property="Padding" Value="13,10" />
     <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="HorizontalContentAlignment" Value="Left" />
-    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="CornerRadius" Value="11" />
     <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    <Setter Property="RenderTransform" Value="translateX(0px)" />
     <Setter Property="Transitions">
       <Transitions>
-        <BrushTransition Property="Background" Duration="0:0:0.15" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="CubicEaseOut" />
+        <BrushTransition Property="Foreground" Duration="0:0:0.18" />
       </Transitions>
     </Setter>
   </Style>
 
+  <Style Selector="Button.nav /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.18" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.nav:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    <Setter Property="RenderTransform" Value="translateX(3px)" />
+  </Style>
+
   <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource BgHoverBrush}" />
+  </Style>
+
+  <Style Selector="Button.nav:pressed">
+    <Setter Property="RenderTransform" Value="translateX(1px) scale(0.985)" />
   </Style>
 
   <Style Selector="Button.nav.active /template/ ContentPresenter">
@@ -48,12 +78,41 @@
     <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
   </Style>
 
+  <Style Selector="Button.nav.active Path.icon.solid">
+    <Setter Property="Fill" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Stroke" Value="Transparent" />
+  </Style>
+
+  <Style Selector="Border.navPip">
+    <Setter Property="Width" Value="3" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="RenderTransform" Value="scaleY(0)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.25" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Border.navPip.on">
+    <Setter Property="RenderTransform" Value="scaleY(1)" />
+  </Style>
+
   <Style Selector="Button.chrome">
     <Setter Property="Background" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="Width" Value="44" />
     <Setter Property="Height" Value="34" />
-    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <Style Selector="Button.chrome /template/ ContentPresenter">
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.15" />
+      </Transitions>
+    </Setter>
   </Style>
 
   <Style Selector="Button.chrome:pointerover /template/ ContentPresenter">
@@ -64,13 +123,26 @@
     <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
   </Style>
 
+  <Style Selector="Button.chrome.danger:pointerover Path.icon">
+    <Setter Property="Stroke" Value="White" />
+  </Style>
+
   <Style Selector="Button.primary">
     <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
     <Setter Property="Foreground" Value="{DynamicResource AccentContrastBrush}" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="CornerRadius" Value="13" />
     <Setter Property="Padding" Value="26,14" />
-    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="RenderTransform" Value="scale(1)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.primary /template/ ContentPresenter">
     <Setter Property="Transitions">
       <Transitions>
         <BrushTransition Property="Background" Duration="0:0:0.18" />
@@ -78,8 +150,21 @@
     </Setter>
   </Style>
 
+  <Style Selector="Button.primary:pointerover">
+    <Setter Property="RenderTransform" Value="scale(1.018)" />
+  </Style>
+
   <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+  </Style>
+
+  <Style Selector="Button.primary:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.975)" />
+  </Style>
+
+  <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource BgHoverBrush}" />
+    <Setter Property="TextElement.Foreground" Value="{DynamicResource TextFaintBrush}" />
   </Style>
 
   <Style Selector="Button.ghost">
@@ -87,20 +172,124 @@
     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="CornerRadius" Value="11" />
     <Setter Property="Padding" Value="14,9" />
+    <Setter Property="RenderTransform" Value="scale(1)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.16" Easing="CubicEaseOut" />
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+      </Transitions>
+    </Setter>
   </Style>
 
-  <Style Selector="Button.ghost:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource BgHoverBrush}" />
+  <Style Selector="Button.ghost:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="RenderTransform" Value="scale(1.02)" />
+  </Style>
+
+  <Style Selector="Button.ghost:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.975)" />
+  </Style>
+
+  <Style Selector="Button.chip">
+    <Setter Property="Background" Value="{DynamicResource BgCardBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="Padding" Value="13,7" />
+    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Foreground" Duration="0:0:0.16" />
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.16" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.chip:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
+  </Style>
+
+  <Style Selector="Button.chip.on">
+    <Setter Property="Foreground" Value="{DynamicResource AccentContrastBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <Style Selector="Button.chip.on /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
   </Style>
 
   <Style Selector="Border.card">
     <Setter Property="Background" Value="{DynamicResource BgCardBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="CornerRadius" Value="15" />
     <Setter Property="Padding" Value="18" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Border.card.hoverable">
+    <Setter Property="RenderTransform" Value="translateY(0px)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.2" Easing="CubicEaseOut" />
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Border.card.hoverable:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="RenderTransform" Value="translateY(-3px)" />
+  </Style>
+
+  <Style Selector="Button.versionCard">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="RenderTransform" Value="scale(1)" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.22" Easing="CubicEaseOut" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Button.versionCard:pointerover">
+    <Setter Property="RenderTransform" Value="scale(1.032)" />
+  </Style>
+
+  <Style Selector="Button.versionCard:pressed">
+    <Setter Property="RenderTransform" Value="scale(0.99)" />
+  </Style>
+
+  <Style Selector="Button.versionCard /template/ ContentPresenter">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+  <Style Selector="Border.versionRing">
+    <Setter Property="BorderThickness" Value="2" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="CornerRadius" Value="16" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.22" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="Border.versionRing.on">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
   </Style>
 
   <Style Selector="TextBlock.title">
@@ -117,8 +306,8 @@
   <Style Selector="TextBlock.label">
     <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
     <Setter Property="FontSize" Value="11" />
-    <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="LetterSpacing" Value="1" />
+    <Setter Property="FontWeight" Value="Bold" />
+    <Setter Property="LetterSpacing" Value="1.2" />
   </Style>
 
   <Style Selector="TextBox.field">
@@ -126,12 +315,114 @@
     <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="CornerRadius" Value="11" />
     <Setter Property="Padding" Value="12,9" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+      </Transitions>
+    </Setter>
   </Style>
 
   <Style Selector="TextBox.field:focus">
     <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <Style Selector="ComboBox.field">
+    <Setter Property="Background" Value="{DynamicResource BgElevatedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="11" />
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.18" />
+      </Transitions>
+    </Setter>
+  </Style>
+
+  <Style Selector="ComboBox.field:pointerover">
+    <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
+  </Style>
+
+  <Style Selector="ComboBox.field:focus">
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+  </Style>
+
+  <Style Selector=":is(Control).fadeIn">
+    <Style.Animations>
+      <Animation Duration="0:0:0.32" Easing="CubicEaseOut" FillMode="Forward">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="0" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <Style Selector=":is(Control).riseIn">
+    <Style.Animations>
+      <Animation Duration="0:0:0.42" Easing="CubicEaseOut" FillMode="Forward">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="0" />
+          <Setter Property="TranslateTransform.Y" Value="16" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+          <Setter Property="TranslateTransform.Y" Value="0" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <Style Selector=":is(Control).popIn">
+    <Style.Animations>
+      <Animation Duration="0:0:0.24" Easing="CubicEaseOut" FillMode="Forward">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="0" />
+          <Setter Property="ScaleTransform.ScaleX" Value="0.94" />
+          <Setter Property="ScaleTransform.ScaleY" Value="0.94" />
+          <Setter Property="TranslateTransform.Y" Value="-8" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="1" />
+          <Setter Property="ScaleTransform.ScaleX" Value="1" />
+          <Setter Property="ScaleTransform.ScaleY" Value="1" />
+          <Setter Property="TranslateTransform.Y" Value="0" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <Style Selector="Border.glowPulse">
+    <Style.Animations>
+      <Animation Duration="0:0:3.2" IterationCount="Infinite" Easing="SineEaseInOut">
+        <KeyFrame Cue="0%">
+          <Setter Property="Opacity" Value="0.28" />
+        </KeyFrame>
+        <KeyFrame Cue="50%">
+          <Setter Property="Opacity" Value="0.62" />
+        </KeyFrame>
+        <KeyFrame Cue="100%">
+          <Setter Property="Opacity" Value="0.28" />
+        </KeyFrame>
+      </Animation>
+    </Style.Animations>
+  </Style>
+
+  <Style Selector="ProgressBar.slim">
+    <Setter Property="Height" Value="5" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    <Setter Property="Background" Value="{DynamicResource BgHoverBrush}" />
+  </Style>
+
+  <Style Selector="ScrollViewer">
+    <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
   </Style>
 
 </Styles>
