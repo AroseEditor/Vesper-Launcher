@@ -3,7 +3,7 @@ using CmlLib.Core;
 using CmlLib.Core.Auth;
 using CmlLib.Core.Installers;
 using CmlLib.Core.ProcessBuilder;
-using Vesper.Core.Instances;
+using Vesper.Core.Profiles;
 using Vesper.Core.Storage;
 
 namespace Vesper.Core.Launching;
@@ -14,34 +14,34 @@ public sealed class LaunchService
 
     public LaunchService(VesperPaths paths) => _paths = paths;
 
-    public MinecraftLauncher CreateLauncher(Instance instance) =>
-        new(new VesperMinecraftPath(_paths, instance.Id));
+    public MinecraftLauncher CreateLauncher(Profile profile) =>
+        new(new VesperMinecraftPath(_paths, profile.Id));
 
     public async Task<IReadOnlyList<string>> GetAvailableVersionsAsync(
-        Instance instance,
+        Profile profile,
         CancellationToken cancellationToken = default)
     {
-        var launcher = CreateLauncher(instance);
+        var launcher = CreateLauncher(profile);
         var versions = await launcher.GetAllVersionsAsync(cancellationToken);
         return versions.Select(v => v.Name).ToList();
     }
 
     public async Task<Process> LaunchAsync(
-        Instance instance,
+        Profile profile,
         MSession session,
         IProgress<LaunchProgress>? progress = null,
         CancellationToken cancellationToken = default)
     {
         _paths.EnsureCreated();
-        Directory.CreateDirectory(_paths.InstanceGameDir(instance.Id));
+        Directory.CreateDirectory(_paths.ProfileGameDir(profile.Id));
 
-        var launcher = CreateLauncher(instance);
+        var launcher = CreateLauncher(profile);
         var tracker = new ProgressTracker(progress);
 
         progress?.Report(tracker.Snapshot(LaunchPhase.Preparing));
 
         await launcher.InstallAsync(
-            instance.EffectiveVersionId,
+            profile.EffectiveVersionId,
             tracker.Files,
             tracker.Bytes,
             cancellationToken);
@@ -49,8 +49,8 @@ public sealed class LaunchService
         progress?.Report(tracker.Snapshot(LaunchPhase.Building));
 
         var process = await launcher.BuildProcessAsync(
-            instance.EffectiveVersionId,
-            BuildOption(instance, session),
+            profile.EffectiveVersionId,
+            BuildOption(profile, session),
             cancellationToken);
 
         process.Start();
@@ -58,27 +58,27 @@ public sealed class LaunchService
         return process;
     }
 
-    private static MLaunchOption BuildOption(Instance instance, MSession session)
+    private static MLaunchOption BuildOption(Profile profile, MSession session)
     {
         var option = new MLaunchOption
         {
             Session = session,
-            MaximumRamMb = instance.MaximumRamMb,
-            MinimumRamMb = instance.MinimumRamMb,
-            ScreenWidth = instance.ScreenWidth,
-            ScreenHeight = instance.ScreenHeight,
-            FullScreen = instance.FullScreen,
+            MaximumRamMb = profile.MaximumRamMb,
+            MinimumRamMb = profile.MinimumRamMb,
+            ScreenWidth = profile.ScreenWidth,
+            ScreenHeight = profile.ScreenHeight,
+            FullScreen = profile.FullScreen,
             GameLauncherName = VesperInfo.LauncherId,
             GameLauncherVersion = VesperInfo.Version,
         };
 
-        if (!string.IsNullOrWhiteSpace(instance.JavaPath))
-            option.JavaPath = instance.JavaPath;
+        if (!string.IsNullOrWhiteSpace(profile.JavaPath))
+            option.JavaPath = profile.JavaPath;
 
-        if (instance.ExtraJvmArguments.Count > 0)
+        if (profile.ExtraJvmArguments.Count > 0)
         {
             option.ExtraJvmArguments = MLaunchOption.DefaultExtraJvmArguments
-                .Concat(instance.ExtraJvmArguments.Select(a => new MArgument(a)))
+                .Concat(profile.ExtraJvmArguments.Select(a => new MArgument(a)))
                 .ToList();
         }
 

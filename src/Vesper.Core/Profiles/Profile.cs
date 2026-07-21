@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace Vesper.Core.Instances;
+namespace Vesper.Core.Profiles;
 
-public sealed class Instance
+public sealed class Profile
 {
     public string Id { get; set; } = string.Empty;
 

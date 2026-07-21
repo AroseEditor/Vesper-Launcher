@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:Vesper.App.ViewModels"
-        xmlns:inst="using:Vesper.Core.Instances"
+        xmlns:inst="using:Vesper.Core.Profiles"
         xmlns:acc="using:Vesper.Core.Accounts"
         xmlns:thm="using:Vesper.Core.Theming"
         x:Class="Vesper.App.Views.MainWindow"
@@ -214,14 +214,14 @@
           <Border Grid.Column="0" Background="{DynamicResource BgBaseBrush}"
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,1,0">
             <Grid RowDefinitions="Auto,*,Auto" Margin="14">
-              <TextBlock Grid.Row="0" Classes="label" Text="INSTANCES" Margin="4,4,0,10" />
+              <TextBlock Grid.Row="0" Classes="label" Text="PROFILES" Margin="4,4,0,10" />
 
               <ScrollViewer Grid.Row="1">
-                <ItemsControl ItemsSource="{Binding Instances}">
+                <ItemsControl ItemsSource="{Binding Profiles}">
                   <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="inst:Instance">
+                    <DataTemplate x:DataType="inst:Profile">
                       <Button Classes="nav" Margin="0,2"
-                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectInstanceCommand}"
+                              Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectProfileCommand}"
                               CommandParameter="{Binding}">
                         <StackPanel Orientation="Horizontal" Spacing="11">
                           <Path Classes="icon" Data="{StaticResource IconBox}" />
@@ -242,16 +242,16 @@
               </ScrollViewer>
 
               <StackPanel Grid.Row="2" Spacing="7" Margin="0,12,0,0">
-                <TextBox Classes="field" PlaceholderText="Instance name"
-                         Text="{Binding NewInstanceName, Mode=TwoWay}" />
+                <TextBox Classes="field" PlaceholderText="Profile name"
+                         Text="{Binding NewProfileName, Mode=TwoWay}" />
                 <TextBox Classes="field" PlaceholderText="Version"
-                         Text="{Binding NewInstanceVersion, Mode=TwoWay}" />
+                         Text="{Binding NewProfileVersion, Mode=TwoWay}" />
                 <Button Classes="ghost" HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
-                        Command="{Binding CreateInstanceCommand}">
+                        Command="{Binding CreateProfileCommand}">
                   <StackPanel Orientation="Horizontal" Spacing="8">
                     <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
-                    <TextBlock Text="New instance" FontSize="12.5" />
+                    <TextBlock Text="New profile" FontSize="12.5" />
                   </StackPanel>
                 </Button>
               </StackPanel>
@@ -263,15 +263,15 @@
             <StackPanel Grid.Row="0" VerticalAlignment="Center" Spacing="10">
               <TextBlock Classes="label" Text="SELECTED INSTANCE" />
               <TextBlock Classes="title" FontSize="34"
-                         Text="{Binding SelectedInstance.Name, FallbackValue='No instance yet'}" />
+                         Text="{Binding SelectedProfile.Name, FallbackValue='No profile yet'}" />
               <StackPanel Orientation="Horizontal" Spacing="10">
                 <Border Background="{DynamicResource BgCardBrush}" CornerRadius="8" Padding="10,5">
                   <TextBlock FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                             Text="{Binding SelectedInstance.MinecraftVersion, FallbackValue='—'}" />
+                             Text="{Binding SelectedProfile.MinecraftVersion, FallbackValue='—'}" />
                 </Border>
                 <Border Background="{DynamicResource BgCardBrush}" CornerRadius="8" Padding="10,5">
                   <TextBlock FontSize="12" Foreground="{DynamicResource AccentBrush}"
-                             Text="{Binding SelectedInstance.ProfileLabel, FallbackValue='—'}" />
+                             Text="{Binding SelectedProfile.ProfileLabel, FallbackValue='—'}" />
                 </Border>
               </StackPanel>
             </StackPanel>

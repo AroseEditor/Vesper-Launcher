@@ -47,7 +47,7 @@ public sealed class ThemeStore
     }
 
     private string PathFor(string name) =>
-        Path.Combine(_paths.ThemesDir, Instances.InstanceManager.Slugify(name) + ".json");
+        Path.Combine(_paths.ThemesDir, Profiles.ProfileManager.Slugify(name) + ".json");
 
     private static VesperTheme? TryRead(string file)
     {

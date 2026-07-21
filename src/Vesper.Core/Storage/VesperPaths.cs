@@ -18,18 +18,18 @@ public sealed class VesperPaths
     public string SharedAssetsDir => Path.Combine(SharedDir, "assets");
     public string SharedLibrariesDir => Path.Combine(SharedDir, "libraries");
     public string SharedVersionsDir => Path.Combine(SharedDir, "versions");
-    public string InstancesDir => Path.Combine(Root, "instances");
+    public string ProfilesDir => Path.Combine(Root, "profiles");
     public string ServersDir => Path.Combine(Root, "servers");
     public string CacheDir => Path.Combine(Root, "cache");
     public string LogsDir => Path.Combine(Root, "logs");
 
-    public string InstanceDir(string id) => Path.Combine(InstancesDir, id);
+    public string ProfileDir(string id) => Path.Combine(ProfilesDir, id);
 
-    public string InstanceFile(string id) => Path.Combine(InstanceDir(id), "instance.json");
+    public string ProfileFile(string id) => Path.Combine(ProfileDir(id), "profile.json");
 
-    public string InstanceGameDir(string id) => Path.Combine(InstanceDir(id), ".minecraft");
+    public string ProfileGameDir(string id) => Path.Combine(ProfileDir(id), ".minecraft");
 
-    public string InstanceModsDir(string id) => Path.Combine(InstanceGameDir(id), "mods");
+    public string ProfileModsDir(string id) => Path.Combine(ProfileGameDir(id), "mods");
 
     public string SkinDir(string accountId) => Path.Combine(SkinsDir, accountId);
 
@@ -53,7 +53,7 @@ public sealed class VesperPaths
         foreach (var dir in new[]
                  {
                      Root, ThemesDir, SkinsDir, RuntimeDir, SharedDir, SharedAssetsDir,
-                     SharedLibrariesDir, SharedVersionsDir, InstancesDir, ServersDir,
+                     SharedLibrariesDir, SharedVersionsDir, ProfilesDir, ServersDir,
                      CacheDir, LogsDir,
                  })
         {

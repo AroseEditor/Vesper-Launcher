@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Vesper.Core.Instances;
+using Vesper.Core.Profiles;
 using Vesper.Core.Storage;
 
 namespace Vesper.Core.Loaders;

@@ -1,4 +1,4 @@
-using Vesper.Core.Instances;
+using Vesper.Core.Profiles;
 using Vesper.Core.Loaders;
 using Xunit;
 

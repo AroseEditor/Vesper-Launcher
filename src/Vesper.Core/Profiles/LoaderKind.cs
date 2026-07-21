@@ -1,4 +1,4 @@
-namespace Vesper.Core.Instances;
+namespace Vesper.Core.Profiles;
 
 public enum LoaderKind
 {

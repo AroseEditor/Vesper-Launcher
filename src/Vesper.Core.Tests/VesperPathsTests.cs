@@ -13,21 +13,21 @@ public class VesperPathsTests
         Assert.True(Directory.Exists(root.Paths.SharedAssetsDir));
         Assert.True(Directory.Exists(root.Paths.SharedLibrariesDir));
         Assert.True(Directory.Exists(root.Paths.SharedVersionsDir));
-        Assert.True(Directory.Exists(root.Paths.InstancesDir));
+        Assert.True(Directory.Exists(root.Paths.ProfilesDir));
         Assert.True(Directory.Exists(root.Paths.ServersDir));
         Assert.True(Directory.Exists(root.Paths.RuntimeDir));
         Assert.True(Directory.Exists(root.Paths.ThemesDir));
     }
 
     [Fact]
-    public void InstancePathsNestUnderTheInstanceDirectory()
+    public void ProfilePathsNestUnderTheProfileDirectory()
     {
         using var root = new TempRoot();
 
-        var dir = root.Paths.InstanceDir("demo");
-        Assert.StartsWith(dir, root.Paths.InstanceGameDir("demo"));
-        Assert.StartsWith(dir, root.Paths.InstanceFile("demo"));
-        Assert.EndsWith(".minecraft", root.Paths.InstanceGameDir("demo"));
+        var dir = root.Paths.ProfileDir("demo");
+        Assert.StartsWith(dir, root.Paths.ProfileGameDir("demo"));
+        Assert.StartsWith(dir, root.Paths.ProfileFile("demo"));
+        Assert.EndsWith(".minecraft", root.Paths.ProfileGameDir("demo"));
     }
 
     [Fact]

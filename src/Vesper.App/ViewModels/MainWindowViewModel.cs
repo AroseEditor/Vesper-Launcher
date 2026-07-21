@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using Vesper.App.Theming;
 using Vesper.Core;
 using Vesper.Core.Accounts;
-using Vesper.Core.Instances;
+using Vesper.Core.Profiles;
 using Vesper.Core.Launching;
 using Vesper.Core.Storage;
 using Vesper.Core.Theming;
@@ -21,7 +21,7 @@ public enum NavTab
 public partial class MainWindowViewModel : ObservableObject
 {
     private readonly VesperPaths _paths;
-    private readonly InstanceManager _instances;
+    private readonly ProfileManager _profileManager;
     private readonly AccountManager _accounts;
     private readonly LaunchService _launcher;
     private readonly ThemeStore _themes;
@@ -30,7 +30,7 @@ public partial class MainWindowViewModel : ObservableObject
     private NavTab _selectedTab = NavTab.Play;
 
     [ObservableProperty]
-    private Instance? _selectedInstance;
+    private Profile? _selectedProfile;
 
     [ObservableProperty]
     private string _statusText = "Ready";
@@ -42,10 +42,10 @@ public partial class MainWindowViewModel : ObservableObject
     private bool _isBusy;
 
     [ObservableProperty]
-    private string _newInstanceName = string.Empty;
+    private string _newProfileName = string.Empty;
 
     [ObservableProperty]
-    private string _newInstanceVersion = "1.21.1";
+    private string _newProfileVersion = "1.21.1";
 
     [ObservableProperty]
     private VesperTheme? _selectedTheme;
@@ -55,7 +55,7 @@ public partial class MainWindowViewModel : ObservableObject
         _paths = VesperPaths.Resolve();
         _paths.EnsureCreated();
 
-        _instances = new InstanceManager(_paths);
+        _profileManager = new ProfileManager(_paths);
         _accounts = new AccountManager(_paths);
         _launcher = new LaunchService(_paths);
         _themes = new ThemeStore(_paths);
@@ -66,12 +66,12 @@ public partial class MainWindowViewModel : ObservableObject
             Themes.Add(theme);
 
         SelectedTheme = Themes.FirstOrDefault();
-        RefreshInstances();
+        RefreshProfiles();
     }
 
     public AccountsViewModel Accounts { get; }
 
-    public ObservableCollection<Instance> Instances { get; } = [];
+    public ObservableCollection<Profile> Profiles { get; } = [];
 
     public ObservableCollection<VesperTheme> Themes { get; } = [];
 
@@ -85,7 +85,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     public bool IsSettingsTab => SelectedTab == NavTab.Settings;
 
-    public bool HasInstances => Instances.Count > 0;
+    public bool HasProfiles => Profiles.Count > 0;
 
     [RelayCommand]
     private void SelectTab(string tab)
@@ -95,27 +95,27 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SelectInstance(Instance instance) => SelectedInstance = instance;
+    private void SelectProfile(Profile profile) => SelectedProfile = profile;
 
     [RelayCommand]
-    private void CreateInstance()
+    private void CreateProfile()
     {
-        var name = string.IsNullOrWhiteSpace(NewInstanceName) ? "New Instance" : NewInstanceName;
-        var version = string.IsNullOrWhiteSpace(NewInstanceVersion) ? "1.21.1" : NewInstanceVersion.Trim();
+        var name = string.IsNullOrWhiteSpace(NewProfileName) ? "New Profile" : NewProfileName;
+        var version = string.IsNullOrWhiteSpace(NewProfileVersion) ? "1.21.1" : NewProfileVersion.Trim();
 
-        var instance = _instances.Create(name, version);
-        RefreshInstances();
-        SelectedInstance = Instances.FirstOrDefault(i => i.Id == instance.Id);
-        NewInstanceName = string.Empty;
-        StatusText = "Created " + instance.Name;
+        var profile = _profileManager.Create(name, version);
+        RefreshProfiles();
+        SelectedProfile = Profiles.FirstOrDefault(i => i.Id == profile.Id);
+        NewProfileName = string.Empty;
+        StatusText = "Created " + profile.Name;
     }
 
     [RelayCommand]
-    private void DeleteInstance(Instance instance)
+    private void DeleteProfile(Profile profile)
     {
-        _instances.Delete(instance.Id);
-        RefreshInstances();
-        StatusText = "Deleted " + instance.Name;
+        _profileManager.Delete(profile.Id);
+        RefreshProfiles();
+        StatusText = "Deleted " + profile.Name;
     }
 
     [RelayCommand]
@@ -124,9 +124,9 @@ public partial class MainWindowViewModel : ObservableObject
         if (IsBusy)
             return;
 
-        if (SelectedInstance is null)
+        if (SelectedProfile is null)
         {
-            StatusText = "Select an instance first";
+            StatusText = "Select a profile first";
             return;
         }
 
@@ -151,11 +151,11 @@ public partial class MainWindowViewModel : ObservableObject
             });
 
             var session = AccountManager.CreateSession(account);
-            await _launcher.LaunchAsync(SelectedInstance, session, progress, cancellationToken);
+            await _launcher.LaunchAsync(SelectedProfile, session, progress, cancellationToken);
 
-            _instances.MarkPlayed(SelectedInstance);
+            _profileManager.MarkPlayed(SelectedProfile);
             _accounts.MarkUsed(account);
-            StatusText = "Launched " + SelectedInstance.Name;
+            StatusText = "Launched " + SelectedProfile.Name;
         }
         catch (OperationCanceledException)
         {
@@ -176,18 +176,18 @@ public partial class MainWindowViewModel : ObservableObject
     private void ApplyTheme(VesperTheme theme)
     {
         SelectedTheme = theme;
-        ThemeManager.Instance.Apply(theme);
+        ThemeManager.Shared.Apply(theme);
         StatusText = "Applied theme " + theme.Name;
     }
 
-    private void RefreshInstances()
+    private void RefreshProfiles()
     {
-        Instances.Clear();
-        foreach (var instance in _instances.LoadAll())
-            Instances.Add(instance);
+        Profiles.Clear();
+        foreach (var profile in _profileManager.LoadAll())
+            Profiles.Add(profile);
 
-        SelectedInstance ??= Instances.FirstOrDefault();
-        OnPropertyChanged(nameof(HasInstances));
+        SelectedProfile ??= Profiles.FirstOrDefault();
+        OnPropertyChanged(nameof(HasProfiles));
     }
 
     partial void OnSelectedTabChanged(NavTab value)

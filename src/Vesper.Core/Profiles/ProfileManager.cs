@@ -1,26 +1,26 @@
 using System.Text;
 using Vesper.Core.Storage;
 
-namespace Vesper.Core.Instances;
+namespace Vesper.Core.Profiles;
 
-public sealed class InstanceManager
+public sealed class ProfileManager
 {
     private readonly VesperPaths _paths;
 
-    public InstanceManager(VesperPaths paths) => _paths = paths;
+    public ProfileManager(VesperPaths paths) => _paths = paths;
 
-    public IReadOnlyList<Instance> LoadAll()
+    public IReadOnlyList<Profile> LoadAll()
     {
-        if (!Directory.Exists(_paths.InstancesDir))
+        if (!Directory.Exists(_paths.ProfilesDir))
             return [];
 
-        var result = new List<Instance>();
-        foreach (var dir in Directory.EnumerateDirectories(_paths.InstancesDir))
+        var result = new List<Profile>();
+        foreach (var dir in Directory.EnumerateDirectories(_paths.ProfilesDir))
         {
             var id = Path.GetFileName(dir);
-            var instance = Load(id);
-            if (instance is not null)
-                result.Add(instance);
+            var profile = Load(id);
+            if (profile is not null)
+                result.Add(profile);
         }
 
         return result
@@ -29,17 +29,17 @@ public sealed class InstanceManager
             .ToList();
     }
 
-    public Instance? Load(string id)
+    public Profile? Load(string id)
     {
-        var instance = VesperJson.Read<Instance>(_paths.InstanceFile(id));
-        if (instance is null)
+        var profile = VesperJson.Read<Profile>(_paths.ProfileFile(id));
+        if (profile is null)
             return null;
 
-        instance.Id = id;
-        return instance;
+        profile.Id = id;
+        return profile;
     }
 
-    public Instance Create(
+    public Profile Create(
         string name,
         string minecraftVersion,
         LoaderKind loader = LoaderKind.Vanilla,
@@ -47,7 +47,7 @@ public sealed class InstanceManager
         bool isVesperProfile = false)
     {
         if (string.IsNullOrWhiteSpace(name))
-            throw new ArgumentException("Instance name cannot be empty", nameof(name));
+            throw new ArgumentException("Profile name cannot be empty", nameof(name));
 
         if (string.IsNullOrWhiteSpace(minecraftVersion))
             throw new ArgumentException("Minecraft version cannot be empty", nameof(minecraftVersion));
@@ -55,7 +55,7 @@ public sealed class InstanceManager
         if (isVesperProfile && !loader.SupportsVesperProfile())
             throw new ArgumentException("Vesper profiles require Fabric or Forge", nameof(loader));
 
-        var instance = new Instance
+        var profile = new Profile
         {
             Id = AllocateId(name),
             Name = name.Trim(),
@@ -65,24 +65,24 @@ public sealed class InstanceManager
             IsVesperProfile = isVesperProfile,
         };
 
-        Directory.CreateDirectory(_paths.InstanceGameDir(instance.Id));
-        Directory.CreateDirectory(_paths.InstanceModsDir(instance.Id));
-        Save(instance);
-        return instance;
+        Directory.CreateDirectory(_paths.ProfileGameDir(profile.Id));
+        Directory.CreateDirectory(_paths.ProfileModsDir(profile.Id));
+        Save(profile);
+        return profile;
     }
 
-    public void Save(Instance instance) =>
-        VesperJson.Write(_paths.InstanceFile(instance.Id), instance);
+    public void Save(Profile profile) =>
+        VesperJson.Write(_paths.ProfileFile(profile.Id), profile);
 
-    public void MarkPlayed(Instance instance)
+    public void MarkPlayed(Profile profile)
     {
-        instance.LastPlayedAt = DateTimeOffset.UtcNow;
-        Save(instance);
+        profile.LastPlayedAt = DateTimeOffset.UtcNow;
+        Save(profile);
     }
 
     public void Delete(string id)
     {
-        var dir = _paths.InstanceDir(id);
+        var dir = _paths.ProfileDir(id);
         if (Directory.Exists(dir))
             Directory.Delete(dir, recursive: true);
     }
@@ -90,13 +90,13 @@ public sealed class InstanceManager
     private string AllocateId(string name)
     {
         var slug = Slugify(name);
-        if (!Directory.Exists(_paths.InstanceDir(slug)))
+        if (!Directory.Exists(_paths.ProfileDir(slug)))
             return slug;
 
         for (var n = 2; n < 1000; n++)
         {
             var candidate = $"{slug}-{n}";
-            if (!Directory.Exists(_paths.InstanceDir(candidate)))
+            if (!Directory.Exists(_paths.ProfileDir(candidate)))
                 return candidate;
         }
 
@@ -123,6 +123,6 @@ public sealed class InstanceManager
         }
 
         var slug = builder.ToString().Trim('-');
-        return slug.Length == 0 ? "instance" : slug;
+        return slug.Length == 0 ? "profile" : slug;
     }
 }

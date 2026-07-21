@@ -6,7 +6,7 @@ namespace Vesper.App.Theming;
 
 public sealed class ThemeManager
 {
-    public static ThemeManager Instance { get; } = new();
+    public static ThemeManager Shared { get; } = new();
 
     public VesperTheme Current { get; private set; } = VesperTheme.MauveBlack();
 
