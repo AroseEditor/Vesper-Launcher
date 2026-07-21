@@ -56,7 +56,7 @@ public static class SkinRenderer
     {
         var result = new SkinRenderResult(width, height);
         var depth = new float[width * height];
-        Array.Fill(depth, float.MaxValue);
+        Array.Fill(depth, float.MinValue);
 
         var yaw = yawDegrees * MathF.PI / 180f;
         var pitch = pitchDegrees * MathF.PI / 180f;
@@ -150,7 +150,7 @@ public static class SkinRenderer
                 var z = a.Z * w0 + b.Z * w1 + c.Z * w2;
                 var index = y * target.Width + x;
 
-                if (z >= depth[index])
+                if (z <= depth[index])
                     continue;
 
                 var u = ta.U * w0 + tb.U * w1 + tc.U * w2;
