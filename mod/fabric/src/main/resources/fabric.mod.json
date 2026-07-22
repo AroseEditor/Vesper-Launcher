@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "vesper",
+  "version": "${version}",
+  "name": "Vesper",
+  "description": "Motion blur, a configurable HUD, cosmetics and offline skin rendering for Vesper Launcher.",
+  "authors": ["ayush.ue5"],
+  "contact": {
+    "homepage": "https://github.com/AroseEditor/Vesper-Launcher",
+    "sources": "https://github.com/AroseEditor/Vesper-Launcher"
+  },
+  "license": "LicenseRef-Vesper",
+  "icon": "assets/vesper/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.vesper.fabric.VesperFabric"]
+  },
+  "depends": {
+    "fabricloader": ">=0.16.0",
+    "minecraft": ">=1.21",
+    "java": ">=21"
+  }
+}
