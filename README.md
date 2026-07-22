@@ -300,7 +300,8 @@ Any token you leave out falls back to the Mauve Black default, so a three-line t
 - [x] Servers tab with Paper install, live console and a full server.properties editor
 - [ ] playit.gg tunnel management
 - [x] Vesper mod builds for Fabric and NeoForge with an in-game menu, 37 modules and a live HUD
-- [ ] Motion blur render pass and the remaining module behaviours
+- [x] Motion blur render pass with Lunar and Badlion presets
+- [ ] Remaining module behaviours (entity culling, particle limit, glint, fullbright)
 - [ ] Vesper Loader one-click profiles
 
 ---
