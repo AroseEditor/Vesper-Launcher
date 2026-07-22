@@ -49,7 +49,9 @@ Nothing is written to your `.minecraft` folder. Vesper keeps its own directory.
 | **Skins** | Change skins for both | Real API calls for Microsoft accounts, mod-driven rendering for local ones |
 | **Servers** | Paper and Purpur | Start, stop, restart, live console, plugins, playit.gg tunnel |
 | **Java** | Managed automatically | The right JRE per version, downloaded for you. Java 8 for old versions, 21 for modern |
-| **Isolation** | Per-instance game directories | Shared libraries and assets, so twenty instances do not mean twenty copies |
+| **Mods** | Modrinth and CurseForge | Browse and install in-app, or drop jars in the folder and rescan for metadata |
+| **Skins** | 3D editor built in | Rotate the model, paint pixels directly onto it, upload a PNG, save per account |
+| **Isolation** | Per-profile game directories | Shared libraries and assets, so twenty profiles do not mean twenty copies |
 | **Themes** | Fully tokenised | Change any colour in the app, live |
 
 ---
@@ -142,13 +144,24 @@ python brand/generate_icon.py --source path/to/your-art.png
 
 ```
 src/
-  Vesper.Core/        Launcher logic with no UI. Paths, instances, accounts, auth, themes, launching
-  Vesper.App/         Avalonia UI. Views, viewmodels, theme application, icons
+  Vesper.Core/        Launcher logic with no UI. Paths, profiles, accounts, auth, loaders,
+                      mods, servers, skins, themes, versions, launching
+  Vesper.App/         Avalonia UI. Views, viewmodels, theme application, icons, 3D skin control
   Vesper.Core.Tests/  Unit tests
 mod/                  Gradle multiloader project for the Vesper client mod
+  common/             Shared logic: motion blur, HUD layout, config, skin resolution
+  fabric/ forge/      Loader entrypoints
 brand/                Icon source and generator
 scripts/              Convention checks used by CI
 ```
+
+The 3D skin viewer is a software rasteriser written from scratch in `Vesper.Core/Skins`. It has a
+z-buffer, per-face shading and a pick buffer, which is what lets you paint pixels directly onto the
+rotating model rather than only onto a flat texture.
+
+The mod's motion blur is frame-accumulation, the same approach Lunar and Badlion use, not an
+Iris or OptiFine shaderpack. Its blend factor is frametime-normalised, so the effect has an identical
+half-life at 60, 120 and 240 frames per second.
 
 The launcher is **C# on .NET 10** with **Avalonia 12** for the interface, and leans on
 [CmlLib.Core](https://github.com/CmlLib/CmlLib.Core) for the genuinely hard parts of launching
@@ -224,14 +237,17 @@ Any token you leave out falls back to the Mauve Black default, so a three-line t
 
 ## Roadmap
 
-- [x] Core launch pipeline with isolated instances and shared assets
+- [x] Core launch pipeline with isolated profiles and shared assets
 - [x] Local and Microsoft accounts
-- [x] Theme system and application shell
+- [x] Theme system and animated application shell
 - [x] Cross-platform CI with drafted releases
-- [ ] Loader installers for Fabric, Forge, NeoForge, Quilt and OptiFine import
-- [ ] Skin and cape management
-- [ ] Servers tab with Paper, live console and playit.gg
-- [ ] Vesper mod: motion blur, HUD, cosmetics, offline skin rendering
+- [x] Loader installers for Fabric, Quilt, Forge, NeoForge and OptiFine import
+- [x] Version browser with per-profile loader and loader-version selection
+- [x] Mods manager with Modrinth and CurseForge browsing
+- [x] Skins page with a 3D model editor
+- [x] Servers tab with Paper install, live console and a full server.properties editor
+- [ ] playit.gg tunnel management
+- [ ] Vesper mod wired into the game: motion blur pass, HUD rendering, offline skin injection
 - [ ] Vesper Loader one-click profiles
 
 ---
