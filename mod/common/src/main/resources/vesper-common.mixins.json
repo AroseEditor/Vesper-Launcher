@@ -4,9 +4,12 @@
   "package": "dev.vesper.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "EntityRendererMixin",
     "GameRendererMixin",
+    "ItemStackMixin",
     "LevelRendererMixin",
-    "MotionBlurMixin"
+    "MotionBlurMixin",
+    "ParticleEngineMixin"
   ],
   "injectors": {
     "defaultRequire": 1

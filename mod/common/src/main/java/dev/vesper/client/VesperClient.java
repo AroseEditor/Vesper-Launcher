@@ -12,8 +12,11 @@ public final class VesperClient {
     public static final String CATEGORY = "key.categories.vesper";
     public static final int ZOOM_KEY = 67;
 
+    public static final double FULLBRIGHT_GAMMA = 15.0;
+
     private static KeyMapping menuKey;
     private static KeyMapping zoomKey;
+    private static Double savedGamma;
 
     private VesperClient() {
     }
@@ -43,7 +46,28 @@ public final class VesperClient {
         return zoomKey != null && zoomKey.isDown();
     }
 
+    private static void applyFullbright(Minecraft client) {
+        if (client.options == null) {
+            return;
+        }
+
+        boolean wanted = VesperMod.config().enabled(dev.vesper.module.VesperModule.FULLBRIGHT);
+
+        if (wanted) {
+            if (savedGamma == null) {
+                savedGamma = client.options.gamma().get();
+            }
+
+            client.options.gamma().set(FULLBRIGHT_GAMMA);
+        } else if (savedGamma != null) {
+            client.options.gamma().set(savedGamma);
+            savedGamma = null;
+        }
+    }
+
     private static void onClientTick(Minecraft client) {
+        applyFullbright(client);
+
         if (menuKey == null) {
             return;
         }

@@ -81,6 +81,30 @@ public class VesperScreen extends Screen {
                     .build());
         }
 
+        if (category == ModuleCategory.PERFORMANCE) {
+            addRenderableWidget(Button.builder(distanceLabel(config), button -> {
+                config.entityRenderDistance += 16;
+
+                if (config.entityRenderDistance > 256) {
+                    config.entityRenderDistance = 16;
+                }
+
+                VesperMod.save();
+                button.setMessage(distanceLabel(config));
+            }).bounds(startX, this.height - 62, cellWidth, 20).build());
+
+            addRenderableWidget(Button.builder(particleLabel(config), button -> {
+                config.particleLimit += 500;
+
+                if (config.particleLimit > 4000) {
+                    config.particleLimit = 500;
+                }
+
+                VesperMod.save();
+                button.setMessage(particleLabel(config));
+            }).bounds(startX + cellWidth + 8, this.height - 62, cellWidth, 20).build());
+        }
+
         if (category == ModuleCategory.VISUAL) {
             addRenderableWidget(Button.builder(blurLabel(config), button -> {
                 config.blurPreset = config.blurPreset.next();
@@ -106,6 +130,14 @@ public class VesperScreen extends Screen {
 
     private static Component moduleLabel(VesperConfig config, VesperModule module) {
         return Component.literal((config.enabled(module) ? "[ON]  " : "[OFF] ") + module.label());
+    }
+
+    private static Component distanceLabel(VesperConfig config) {
+        return Component.literal("Entity distance: " + config.entityRenderDistance + " blocks");
+    }
+
+    private static Component particleLabel(VesperConfig config) {
+        return Component.literal("Particle limit: " + config.particleLimit);
     }
 
     private static Component blurLabel(VesperConfig config) {
