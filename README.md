@@ -137,10 +137,16 @@ so `-r linux-x64` will work if you publish it yourself, but no Linux artifact sh
 Needs [NSIS](https://nsis.sourceforge.io) on the path. Publish to a folder first, then run makensis:
 
 ```bash
-dotnet publish src/Vesper.App -c Release -r win-x64 --self-contained true   -p:PublishSingleFile=false -o publish/win-x64
+dotnet publish src/Vesper.App -c Release -r win-x64 \
+  --self-contained true -p:PublishSingleFile=false -o publish/win-x64
+
 mkdir -p artifacts
 cd installer
-makensis /DAPP_VERSION=0.1.0 /DVI_VERSION=0.1.0.0   /DSOURCE_DIR=..\publish\win-x64   /DOUT_FILE=..rtifacts\VesperLauncher-0.1.0-Setup.exe vesper.nsi
+
+makensis /DAPP_VERSION=0.1.0 /DVI_VERSION=0.1.0.0 \
+  /DSOURCE_DIR=..\publish\win-x64 \
+  /DOUT_FILE=..\artifacts\VesperLauncher-0.1.0-Setup.exe \
+  vesper.nsi
 ```
 
 The installer must be built from a folder publish, not a single-file one.
