@@ -59,22 +59,35 @@ jobs:
       - name: Publish
         shell: bash
         run: |
+          SINGLE=true
+          if [[ "${{ matrix.rid }}" == win-* ]]; then
+            SINGLE=false
+          fi
           dotnet publish src/Vesper.App/Vesper.App.csproj \
             -c Release \
             -r ${{ matrix.rid }} \
             --self-contained true \
-            -p:PublishSingleFile=true \
+            -p:PublishSingleFile=$SINGLE \
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:Version=${{ needs.version.outputs.value }} \
             -o publish/${{ matrix.rid }}
 
-      - name: Package Windows
+      - name: Build Windows installer
         if: startsWith(matrix.rid, 'win')
-        shell: bash
+        shell: pwsh
         run: |
-          mkdir -p artifacts
-          cp publish/${{ matrix.rid }}/VesperLauncher.exe \
-             artifacts/VesperLauncher-${{ needs.version.outputs.value }}-${{ matrix.rid }}.exe
+          choco install nsis -y --no-progress
+          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          if (-not (Test-Path $makensis)) { throw "makensis missing at $makensis" }
+          $version = "${{ needs.version.outputs.value }}"
+          $parts = @($version -split '\.')
+          while ($parts.Count -lt 4) { $parts += '0' }
+          $vi = ($parts[0..3] -join '.')
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          $src = "..\publish\${{ matrix.rid }}"
+          $out = "..\artifacts\VesperLauncher-$version-Setup.exe"
+          & $makensis "/DAPP_VERSION=$version" "/DVI_VERSION=$vi" "/DSOURCE_DIR=$src" "/DOUT_FILE=$out" "installer\vesper.nsi"
+          if ($LASTEXITCODE -ne 0) { throw "makensis failed with $LASTEXITCODE" }
 
       - name: Package macOS
         if: startsWith(matrix.rid, 'osx')
@@ -216,7 +229,7 @@ jobs:
             echo ''
             echo '**Downloads**'
             echo ''
-            echo '- Windows: the `.exe`'
+            echo '- Windows: run the `Setup.exe` installer'
             echo '- macOS: the `.dmg` for your chip, Apple Silicon or Intel'
             echo ''
             echo '*macOS builds are unsigned. Right-click the app and choose Open the first time, or run* `xattr -dr com.apple.quarantine "/Applications/Vesper Launcher.app"`*.*'

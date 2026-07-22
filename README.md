@@ -87,9 +87,14 @@ Grab the latest build from [Releases](../../releases).
 
 | Platform | File | Notes |
 |---|---|---|
-| Windows | `VesperLauncher-<version>-win-x64.exe` | Self-contained, no .NET install needed |
+| Windows | `VesperLauncher-<version>-Setup.exe` | Installer. Per-user, so no admin prompt |
 | macOS (Apple Silicon) | `...-osx-arm64.dmg` | See the Gatekeeper note below |
 | macOS (Intel) | `...-osx-x64.dmg` | See the Gatekeeper note below |
+
+The Windows installer puts Vesper in `%LOCALAPPDATA%\Programs\VesperLauncher`, adds Start menu and
+desktop shortcuts, and registers an entry in Add or remove programs. Because it installs per-user it
+never asks for administrator rights. Uninstalling offers to keep or delete your profiles, worlds and
+downloaded game files, and keeps them by default.
 
 **macOS builds are unsigned.** Notarisation requires a paid Apple Developer account. Until that is in
 place, right-click the app and choose *Open* the first time, or run:
@@ -126,6 +131,19 @@ Swap `win-x64` for `osx-arm64` or `osx-x64` as needed.
 
 Linux is not built for releases. The code is cross-platform and CI still compiles and tests on Linux,
 so `-r linux-x64` will work if you publish it yourself, but no Linux artifact ships.
+
+### Building the Windows installer
+
+Needs [NSIS](https://nsis.sourceforge.io) on the path. Publish to a folder first, then run makensis:
+
+```bash
+dotnet publish src/Vesper.App -c Release -r win-x64 --self-contained true   -p:PublishSingleFile=false -o publish/win-x64
+mkdir -p artifacts
+cd installer
+makensis /DAPP_VERSION=0.1.0 /DVI_VERSION=0.1.0.0   /DSOURCE_DIR=..\publish\win-x64   /DOUT_FILE=..rtifacts\VesperLauncher-0.1.0-Setup.exe vesper.nsi
+```
+
+The installer must be built from a folder publish, not a single-file one.
 
 ### Building the mod
 
