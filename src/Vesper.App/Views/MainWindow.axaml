@@ -255,5 +255,8 @@
       </TransitioningContentControl>
 
     </Grid>
+
+    <views:ModsOverlay Grid.Row="0" Grid.RowSpan="2" DataContext="{Binding Play.Mods}" />
+
   </Grid>
 </Window>

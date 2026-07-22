@@ -1,0 +1,213 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vesper.App.ViewModels"
+             xmlns:mods="using:Vesper.Core.Mods"
+             x:Class="Vesper.App.Views.ModsOverlay"
+             x:DataType="vm:ModsViewModel">
+
+  <Border Background="#B8000000" IsVisible="{Binding IsOpen}">
+    <Border Classes="popIn" Width="880" Height="600"
+            Background="{DynamicResource BgElevatedBrush}"
+            BorderBrush="{DynamicResource BorderStrongBrush}"
+            BorderThickness="1" CornerRadius="18"
+            HorizontalAlignment="Center" VerticalAlignment="Center">
+
+      <Grid RowDefinitions="Auto,*,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="22,18,14,14">
+          <StackPanel Grid.Column="0" Spacing="3">
+            <TextBlock Classes="title" FontSize="19" Text="Mods"
+                       IsVisible="{Binding !IsBrowserOpen}" />
+            <TextBlock Classes="title" FontSize="19" Text="Add mods"
+                       IsVisible="{Binding IsBrowserOpen}" />
+            <StackPanel Orientation="Horizontal" Spacing="9">
+              <TextBlock Classes="subtitle" FontSize="12" Text="{Binding ProfileName}" />
+              <TextBlock Classes="subtitle" FontSize="12"
+                         Foreground="{DynamicResource AccentBrush}"
+                         Text="{Binding TargetLabel}" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7">
+            <Button Classes="ghost" Padding="11,8" ToolTip.Tip="Open the mods folder"
+                    IsVisible="{Binding !IsBrowserOpen}"
+                    Command="{Binding OpenFolderCommand}">
+              <Path Classes="icon" Width="16" Height="16" Data="{StaticResource IconFolder}" />
+            </Button>
+            <Button Classes="ghost" Padding="11,8" ToolTip.Tip="Rescan the mods folder"
+                    IsVisible="{Binding !IsBrowserOpen}"
+                    Command="{Binding RefreshCommand}">
+              <Path Classes="icon" Width="16" Height="16" Data="{StaticResource IconRefresh}" />
+            </Button>
+            <Button Classes="primary" Padding="15,9"
+                    IsVisible="{Binding !IsBrowserOpen}"
+                    Command="{Binding OpenBrowserCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Classes="icon solid" Width="14" Height="14"
+                      Fill="{DynamicResource AccentContrastBrush}"
+                      Data="{StaticResource IconPlus}" />
+                <TextBlock Text="Add mods" FontSize="12.5" />
+              </StackPanel>
+            </Button>
+            <Button Classes="ghost" Padding="11,8"
+                    IsVisible="{Binding IsBrowserOpen}"
+                    Command="{Binding CloseBrowserCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconChevronRight}"
+                      RenderTransform="rotate(180deg)" />
+                <TextBlock Text="Back to mods" FontSize="12.5" />
+              </StackPanel>
+            </Button>
+            <Button Classes="chrome danger" Width="36" Height="36" CornerRadius="10"
+                    Command="{Binding CloseCommand}">
+              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconClose}" />
+            </Button>
+          </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Margin="22,0,22,0"
+                Background="{DynamicResource BgBaseBrush}"
+                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                BorderThickness="1" CornerRadius="13" ClipToBounds="True">
+          <Panel>
+
+            <Panel IsVisible="{Binding !IsBrowserOpen}">
+              <Panel.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Add mods" Command="{Binding OpenBrowserCommand}" />
+                  <MenuItem Header="Rescan folder" Command="{Binding RefreshCommand}" />
+                  <MenuItem Header="Open mods folder" Command="{Binding OpenFolderCommand}" />
+                </ContextMenu>
+              </Panel.ContextMenu>
+
+              <ScrollViewer Padding="10">
+                <ItemsControl ItemsSource="{Binding Mods}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="mods:ModFile">
+                      <Border Classes="card hoverable" Margin="4" Padding="14,11">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                          <Border Grid.Column="0" Width="38" Height="38" CornerRadius="10"
+                                  Background="{DynamicResource AccentDeepBrush}"
+                                  VerticalAlignment="Center">
+                            <Path Classes="icon" Width="18" Height="18"
+                                  Stroke="{DynamicResource TextPrimaryBrush}"
+                                  Data="{StaticResource IconBox}" />
+                          </Border>
+
+                          <StackPanel Grid.Column="1" Margin="13,0" VerticalAlignment="Center" Spacing="2">
+                            <TextBlock Text="{Binding DisplayName}" FontSize="13.5" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding Subtitle}" FontSize="11"
+                                       Foreground="{DynamicResource TextFaintBrush}"
+                                       TextTrimming="CharacterEllipsis" />
+                          </StackPanel>
+
+                          <TextBlock Grid.Column="2" Text="{Binding SizeLabel}" FontSize="11"
+                                     VerticalAlignment="Center" Margin="0,0,12,0"
+                                     Foreground="{DynamicResource TextFaintBrush}" />
+
+                          <Button Grid.Column="3" Classes="chrome danger" Width="34" Height="34"
+                                  CornerRadius="9"
+                                  ToolTip.Tip="Remove this mod"
+                                  Command="{Binding $parent[UserControl].((vm:ModsViewModel)DataContext).RemoveModCommand}"
+                                  CommandParameter="{Binding}">
+                            <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconClose}" />
+                          </Button>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+
+              <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="9"
+                          IsVisible="{Binding !HasMods}">
+                <TextBlock Text="No mods in this profile" Classes="subtitle"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Right-click here or use Add mods" Classes="subtitle" FontSize="11.5"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource TextFaintBrush}" />
+              </StackPanel>
+            </Panel>
+
+            <Grid IsVisible="{Binding IsBrowserOpen}" RowDefinitions="Auto,*" Margin="12">
+              <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,10">
+                <Border Grid.Column="0" Background="{DynamicResource BgCardBrush}"
+                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                        CornerRadius="10" Padding="4">
+                  <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Button Classes="chip" Classes.on="{Binding IsModrinth}"
+                            Command="{Binding SetSourceCommand}" CommandParameter="Modrinth"
+                            Content="Modrinth" />
+                    <Button Classes="chip" Classes.on="{Binding IsCurseForge}"
+                            Command="{Binding SetSourceCommand}" CommandParameter="CurseForge"
+                            Content="CurseForge" />
+                  </StackPanel>
+                </Border>
+
+                <TextBox Grid.Column="1" Classes="field" Margin="10,0"
+                         PlaceholderText="Search for a mod"
+                         Text="{Binding SearchQuery, Mode=TwoWay}" />
+
+                <Button Grid.Column="2" Classes="primary" Padding="17,10"
+                        IsEnabled="{Binding !IsSearching}"
+                        Command="{Binding SearchCommand}" Content="Search" />
+              </Grid>
+
+              <ScrollViewer Grid.Row="1">
+                <ItemsControl ItemsSource="{Binding SearchResults}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="mods:ModSearchResult">
+                      <Border Classes="card hoverable" Margin="2,4" Padding="14,11">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <StackPanel Grid.Column="0" Spacing="3" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal" Spacing="9">
+                              <TextBlock Text="{Binding Title}" FontSize="13.5" FontWeight="SemiBold"
+                                         Foreground="{DynamicResource TextPrimaryBrush}" />
+                              <TextBlock Text="{Binding SourceLabel}" FontSize="10"
+                                         VerticalAlignment="Center"
+                                         Foreground="{DynamicResource AccentBrush}" />
+                            </StackPanel>
+                            <TextBlock Text="{Binding Description}" FontSize="11.5"
+                                       TextWrapping="Wrap" MaxLines="2"
+                                       TextTrimming="CharacterEllipsis"
+                                       Foreground="{DynamicResource TextMutedBrush}" />
+                            <TextBlock FontSize="10.5" Foreground="{DynamicResource TextFaintBrush}">
+                              <Run Text="{Binding Author}" />
+                              <Run Text="  " />
+                              <Run Text="{Binding DownloadsLabel}" />
+                            </TextBlock>
+                          </StackPanel>
+                          <Button Grid.Column="1" Classes="ghost" VerticalAlignment="Center"
+                                  Command="{Binding $parent[UserControl].((vm:ModsViewModel)DataContext).InstallCommand}"
+                                  CommandParameter="{Binding}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                              <Path Classes="icon" Width="14" Height="14"
+                                    Data="{StaticResource IconDownload}" />
+                              <TextBlock Text="Add" FontSize="12.5" />
+                            </StackPanel>
+                          </Button>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Grid>
+
+          </Panel>
+        </Border>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="22,12,22,16">
+          <TextBlock Grid.Column="0" Text="{Binding StatusText}" Classes="subtitle" FontSize="12"
+                     VerticalAlignment="Center" TextWrapping="Wrap" />
+          <TextBlock Grid.Column="1" Text="Changes save straight to disk" FontSize="11"
+                     VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextFaintBrush}" />
+        </Grid>
+
+      </Grid>
+    </Border>
+  </Border>
+</UserControl>

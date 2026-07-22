@@ -1,21 +1,76 @@
-MIT License
+Vesper Launcher License
 
-Copyright (c) 2026 ayush.ue5
+Copyright (c) 2026 ayush.ue5. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This is a source-available licence. The source code is published so that people
+can read it, learn from it, build it, and contribute to it. It is not a grant of
+permission to take this work and present it as your own.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. GRANT
+
+Permission is granted, free of charge, to any person obtaining a copy of this
+software and its associated files (the "Software") to:
+
+  a) use the Software for any purpose, personal or commercial;
+  b) study and modify the Software;
+  c) distribute the Software and modified versions of it, subject to the
+     conditions below.
+
+2. ATTRIBUTION
+
+Any distribution of the Software, modified or unmodified, in source or compiled
+form, must:
+
+  a) retain this licence file in full, unmodified;
+  b) retain the copyright notice above;
+  c) credit "ayush.ue5" as the original author in a place a user can reasonably
+     find, such as an about screen, a readme, or a release page;
+  d) state clearly and prominently that it is a modified version, and describe
+     that it is derived from Vesper Launcher, if it has been modified.
+
+3. NO MISREPRESENTATION OF AUTHORSHIP
+
+You may not claim, imply, or allow others to believe that you are the author or
+originator of the Software or of any substantial part of it. Specifically, you
+may not:
+
+  a) remove, obscure, replace, or alter the copyright notice, this licence, or
+     any author credit contained in the Software;
+  b) rename the Software, rebrand it, and publish or distribute it in a way that
+     presents it as your own original work;
+  c) republish the Software, in whole or in substantial part, under a different
+     licence that removes these conditions;
+  d) submit the Software or a derivative of it as your own work for any contest,
+     assessment, portfolio, academic submission, or similar purpose.
+
+Republishing a renamed copy while removing or hiding the original attribution is
+a breach of this licence and terminates the rights granted by it.
+
+4. NAME, BRANDING AND LOGO
+
+The names "Vesper" and "Vesper Launcher", the Vesper logo, and the Vesper visual
+identity are not licensed to you. Forks and derivative works must use a
+different name and a different logo, and must not suggest that they are endorsed
+by, affiliated with, or officially connected to Vesper Launcher or its author.
+
+5. TERMINATION
+
+If you breach any condition of this licence, the rights granted to you under it
+end automatically. They may be reinstated in writing by the copyright holder.
+
+6. NO WARRANTY
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR OR
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+7. THIRD-PARTY COMPONENTS
+
+The Software depends on third-party libraries that remain under their own
+licences. Those licences govern those components, not this one.
+
+Vesper Launcher is not affiliated with, endorsed by, or associated with Mojang
+Studios or Microsoft. Minecraft is a trademark of Mojang Studios.

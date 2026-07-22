@@ -38,12 +38,20 @@
                  PlaceholderText="Search versions"
                  Text="{Binding SearchText, Mode=TwoWay}" />
 
-        <Button Grid.Column="2" Classes="ghost" Command="{Binding BeginCreateProfileCommand}">
-          <StackPanel Orientation="Horizontal" Spacing="9">
-            <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
-            <TextBlock Text="New Profile" VerticalAlignment="Center" FontSize="12.5" />
-          </StackPanel>
-        </Button>
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="9">
+          <Button Classes="ghost" Command="{Binding OpenModsCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="9">
+              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
+              <TextBlock Text="Mods" VerticalAlignment="Center" FontSize="12.5" />
+            </StackPanel>
+          </Button>
+          <Button Classes="ghost" Command="{Binding BeginCreateProfileCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="9">
+              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
+              <TextBlock Text="New Profile" VerticalAlignment="Center" FontSize="12.5" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
       </Grid>
 
       <Panel Grid.Row="1">
@@ -56,18 +64,20 @@
           <ItemsControl ItemsSource="{Binding Cards}" Margin="0,0,8,0">
             <ItemsControl.ItemsPanel>
               <ItemsPanelTemplate>
-                <WrapPanel Orientation="Horizontal" />
+                <UniformGrid Columns="3" />
               </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:VersionCardViewModel">
-                <Button Classes="versionCard riseIn" Width="212" Height="132" Margin="0,0,14,14"
+                <Button Classes="versionCard riseIn" Height="152" Margin="0,0,14,14"
+                        HorizontalAlignment="Stretch"
                         Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).SelectCardCommand}"
                         CommandParameter="{Binding}">
-                  <Border CornerRadius="16" ClipToBounds="True" Background="{Binding Background}">
+                  <Border CornerRadius="16" ClipToBounds="True">
                     <Panel>
-                      <Border Background="#66000000" />
-                      <StackPanel VerticalAlignment="Bottom" Margin="16,0,16,15" Spacing="2">
+                      <Image Source="{Binding Banner}" Stretch="UniformToFill" />
+                      <Border Background="#4D000000" />
+                      <StackPanel VerticalAlignment="Bottom" Margin="17,0,17,15" Spacing="1">
                         <TextBlock Text="{Binding Name}" FontSize="27" FontWeight="Bold"
                                    Foreground="#FFFFFFFF" />
                         <TextBlock Text="{Binding Subtitle}" FontSize="11.5"
@@ -100,6 +110,7 @@
             <StackPanel Spacing="7">
               <TextBlock Classes="label" Text="MINECRAFT VERSION" />
               <ComboBox Classes="field" ItemsSource="{Binding GroupVersions}"
+                        PlaceholderText="{Binding VersionPlaceholder}"
                         SelectedItem="{Binding SelectedVersion, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="ver:MinecraftVersionInfo">
@@ -118,6 +129,7 @@
             <StackPanel Spacing="7" IsVisible="{Binding NeedsLoaderVersion}">
               <TextBlock Classes="label" Text="LOADER VERSION" />
               <ComboBox Classes="field" ItemsSource="{Binding LoaderVersions}"
+                        PlaceholderText="{Binding LoaderVersionPlaceholder}"
                         SelectedItem="{Binding SelectedLoaderVersion, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="ld:LoaderVersion">

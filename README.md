@@ -10,7 +10,7 @@
 
 [![Build](https://github.com/AroseEditor/Vesper-Launcher/actions/workflows/build.yml/badge.svg)](../../actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/AroseEditor/Vesper-Launcher?include_prereleases&label=release)](../../releases)
-[![License](https://img.shields.io/badge/license-MIT-B57EDC)](LICENSE)
+[![License](https://img.shields.io/badge/license-source--available-B57EDC)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10-9A5FC4)](https://dotnet.microsoft.com)
 [![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-D14FE8)](../../releases)
 
@@ -253,7 +253,12 @@ python scripts/check_conventions.py
 
 ## License
 
-[MIT](LICENSE).
+**Source-available, not MIT.** See [LICENSE](LICENSE).
+
+You may use, study, modify and redistribute Vesper, including commercially. What you may not do is
+strip the attribution, rebrand it, and pass it off as your own work. Forks must keep the licence and
+the credit to **ayush.ue5**, must say clearly that they are modified, and must use their own name and
+logo rather than Vesper's.
 
 *Vesper Launcher is not affiliated with, endorsed by, or associated with Mojang Studios or Microsoft.
 Minecraft is a trademark of Mojang Studios. Vesper downloads game files from Mojang at runtime and

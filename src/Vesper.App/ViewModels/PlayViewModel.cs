@@ -81,9 +81,13 @@ public partial class PlayViewModel : ObservableObject
         _launcher = launcher;
         _catalog = new VersionCatalog(paths);
         _loaders = new LoaderRegistry(paths);
+        Mods = new ModsViewModel(paths);
 
+        RebuildLoaderOptions();
         RefreshProfiles();
     }
+
+    public ModsViewModel Mods { get; }
 
     public ObservableCollection<VersionCardViewModel> Cards { get; } = [];
 
@@ -102,6 +106,18 @@ public partial class PlayViewModel : ObservableObject
     public bool HasSelection => SelectedVersion is not null;
 
     public bool NeedsLoaderVersion => SelectedLoader != LoaderKind.Vanilla;
+
+    public bool HasGroupVersions => GroupVersions.Count > 0;
+
+    public bool HasLoaderVersions => LoaderVersions.Count > 0;
+
+    public string VersionPlaceholder => IsLoadingVersions ? "Loading versions" : "Pick a version";
+
+    public string LoaderVersionPlaceholder => IsLoadingLoaders
+        ? "Loading builds"
+        : HasLoaderVersions
+            ? "Pick a build"
+            : "No builds for this version";
 
     public string SelectedSummary => SelectedVersion is null
         ? "Pick a version"
@@ -165,6 +181,20 @@ public partial class PlayViewModel : ObservableObject
 
         SelectedLoader = profile.Loader;
         StatusText = "Loaded profile " + profile.Name;
+    }
+
+    [RelayCommand]
+    private void OpenMods()
+    {
+        var profile = SelectedProfile;
+
+        if (profile is null && SelectedVersion is not null)
+        {
+            profile = _profiles.LoadAll().FirstOrDefault(p =>
+                p.MinecraftVersion == SelectedVersion.Id && p.Loader == SelectedLoader);
+        }
+
+        Mods.Open(profile ?? Profiles.FirstOrDefault());
     }
 
     [RelayCommand]
@@ -411,8 +441,16 @@ public partial class PlayViewModel : ObservableObject
         {
             IsLoadingLoaders = false;
             OnPropertyChanged(nameof(NeedsLoaderVersion));
+            OnPropertyChanged(nameof(HasLoaderVersions));
+            OnPropertyChanged(nameof(LoaderVersionPlaceholder));
         }
     }
+
+    partial void OnIsLoadingVersionsChanged(bool value) =>
+        OnPropertyChanged(nameof(VersionPlaceholder));
+
+    partial void OnIsLoadingLoadersChanged(bool value) =>
+        OnPropertyChanged(nameof(LoaderVersionPlaceholder));
 
     partial void OnCategoryChanged(VersionCategory value)
     {
@@ -439,6 +477,7 @@ public partial class PlayViewModel : ObservableObject
             GroupVersions.Add(version);
 
         SelectedVersion = GroupVersions.FirstOrDefault();
+        OnPropertyChanged(nameof(HasGroupVersions));
     }
 
     partial void OnSelectedVersionChanged(MinecraftVersionInfo? value)

@@ -1,38 +1,37 @@
-using Avalonia;
-using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Vesper.App.Controls;
 using Vesper.Core.Versions;
 
 namespace Vesper.App.ViewModels;
 
 public sealed class VersionCardViewModel
 {
-    private static readonly (string From, string To)[] Palette =
+    private static readonly (uint Top, uint Bottom)[] Palette =
     [
-        ("#B57EDC", "#5E3A86"),
-        ("#D14FE8", "#6B2E8A"),
-        ("#9A5FC4", "#3E2560"),
-        ("#C9A0DC", "#6E4A94"),
-        ("#8E6BD6", "#39265F"),
-        ("#E06AD8", "#5A2B72"),
+        (0xFFB57EDC, 0xFF3E2560),
+        (0xFFD14FE8, 0xFF4A1C63),
+        (0xFF9A5FC4, 0xFF2C1A45),
+        (0xFFC9A0DC, 0xFF5B3A7E),
+        (0xFF8E6BD6, 0xFF261A46),
+        (0xFFE06AD8, 0xFF54246B),
     ];
+
+    private static readonly Dictionary<int, Bitmap> Cache = [];
 
     public VersionCardViewModel(VersionGroup group)
     {
         Group = group;
 
-        var index = Math.Abs(group.Name.GetHashCode()) % Palette.Length;
-        var (from, to) = Palette[index];
+        var index = Math.Abs(StableHash(group.Name)) % Palette.Length;
 
-        Background = new LinearGradientBrush
+        if (!Cache.TryGetValue(index, out var banner))
         {
-            StartPoint = new RelativePoint(0, 0, RelativeUnit.Relative),
-            EndPoint = new RelativePoint(1, 1, RelativeUnit.Relative),
-            GradientStops =
-            {
-                new GradientStop(Color.Parse(from), 0),
-                new GradientStop(Color.Parse(to), 1),
-            },
-        };
+            var (top, bottom) = Palette[index];
+            banner = BannerFactory.Create(top, bottom, index * 7919);
+            Cache[index] = banner;
+        }
+
+        Banner = banner;
     }
 
     public VersionGroup Group { get; }
@@ -43,5 +42,15 @@ public sealed class VersionCardViewModel
 
     public string Newest => Group.Newest.Id;
 
-    public IBrush Background { get; }
+    public Bitmap Banner { get; }
+
+    private static int StableHash(string value)
+    {
+        var hash = 17;
+
+        foreach (var c in value)
+            hash = hash * 31 + c;
+
+        return hash;
+    }
 }
