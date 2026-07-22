@@ -38,20 +38,12 @@
                  PlaceholderText="Search versions"
                  Text="{Binding SearchText, Mode=TwoWay}" />
 
-        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="9">
-          <Button Classes="ghost" Command="{Binding OpenModsCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
-              <TextBlock Text="Mods" VerticalAlignment="Center" FontSize="12.5" />
-            </StackPanel>
-          </Button>
-          <Button Classes="ghost" Command="{Binding BeginCreateProfileCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
-              <TextBlock Text="New Profile" VerticalAlignment="Center" FontSize="12.5" />
-            </StackPanel>
-          </Button>
-        </StackPanel>
+        <Button Grid.Column="2" Classes="ghost" Command="{Binding BeginCreateProfileCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="9">
+            <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
+            <TextBlock Text="New Profile" VerticalAlignment="Center" FontSize="12.5" />
+          </StackPanel>
+        </Button>
       </Grid>
 
       <Panel Grid.Row="1">
@@ -140,6 +132,16 @@
               <TextBlock Text="Loading builds" Classes="subtitle" FontSize="11"
                          IsVisible="{Binding IsLoadingLoaders}" />
             </StackPanel>
+
+            <Button Classes="ghost" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    IsVisible="{Binding NeedsLoaderVersion}"
+                    Command="{Binding OpenModsCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
+                <TextBlock Text="Manage mods" VerticalAlignment="Center" FontSize="12.5" />
+              </StackPanel>
+            </Button>
 
             <StackPanel Spacing="9" IsVisible="{Binding IsCreatingProfile}">
               <TextBlock Classes="label" Text="PROFILE NAME" />

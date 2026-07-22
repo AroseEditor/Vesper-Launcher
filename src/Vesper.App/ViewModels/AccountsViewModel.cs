@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -50,6 +51,10 @@ public partial class AccountsViewModel : ObservableObject
     }
 
     public bool HasAvatar => SelectedAvatar is not null;
+
+    public static Func<string, Task>? ClipboardWriter { get; set; }
+
+    public bool HasDeviceCode => !string.IsNullOrEmpty(DeviceCode);
 
     public ObservableCollection<Account> Accounts { get; } = [];
 
@@ -122,7 +127,11 @@ public partial class AccountsViewModel : ObservableObject
 
             DeviceCode = code.UserCode;
             DeviceVerificationUri = code.VerificationUri;
-            StatusMessage = "Enter the code at " + code.VerificationUri;
+
+            await CopyCodeAsync();
+            OpenVerificationPage();
+
+            StatusMessage = "Code copied. Paste it in the page that just opened.";
 
             var result = await auth.PollForTokenAsync(code, cancellationToken);
             var account = _manager.AddOrUpdateMicrosoft(
@@ -149,6 +158,43 @@ public partial class AccountsViewModel : ObservableObject
             IsSigningIn = false;
             DeviceCode = null;
             DeviceVerificationUri = null;
+        }
+    }
+
+    [RelayCommand]
+    private async Task CopyCodeAsync()
+    {
+        if (string.IsNullOrEmpty(DeviceCode) || ClipboardWriter is null)
+            return;
+
+        try
+        {
+            await ClipboardWriter(DeviceCode);
+            StatusMessage = "Copied " + DeviceCode + " to your clipboard";
+        }
+        catch (Exception)
+        {
+            StatusMessage = "Could not reach the clipboard. Copy the code manually.";
+        }
+    }
+
+    [RelayCommand]
+    private void OpenVerificationPage()
+    {
+        if (string.IsNullOrEmpty(DeviceVerificationUri))
+            return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = DeviceVerificationUri,
+                UseShellExecute = true,
+            });
+        }
+        catch (Exception)
+        {
+            StatusMessage = "Open " + DeviceVerificationUri + " and enter the code.";
         }
     }
 
@@ -190,6 +236,8 @@ public partial class AccountsViewModel : ObservableObject
     }
 
     partial void OnSelectedAvatarChanged(Bitmap? value) => OnPropertyChanged(nameof(HasAvatar));
+
+    partial void OnDeviceCodeChanged(string? value) => OnPropertyChanged(nameof(HasDeviceCode));
 
     private void RefreshAvatar(Account? account)
     {

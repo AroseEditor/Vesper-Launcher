@@ -63,7 +63,7 @@ public final class VesperConfig {
                 }
             }
         } catch (IOException | RuntimeException ignored) {
-            // falls through to defaults
+            return new VesperConfig();
         }
 
         return new VesperConfig();
@@ -74,7 +74,7 @@ public final class VesperConfig {
             Files.createDirectories(path.getParent());
             Files.writeString(path, GSON.toJson(this));
         } catch (IOException ignored) {
-            // configuration is best effort
+            return;
         }
     }
 }

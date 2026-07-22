@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Vesper.App.ViewModels;
 
@@ -16,6 +17,9 @@ public partial class MainWindow : Window
     protected override async void OnLoaded(RoutedEventArgs e)
     {
         base.OnLoaded(e);
+
+        AccountsViewModel.ClipboardWriter = text =>
+            Clipboard?.SetTextAsync(text) ?? Task.CompletedTask;
 
         if (DataContext is MainWindowViewModel model)
             await model.InitializeAsync();

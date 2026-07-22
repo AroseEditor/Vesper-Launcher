@@ -37,7 +37,7 @@ public partial class PlayViewModel : ObservableObject
     private MinecraftVersionInfo? _selectedVersion;
 
     [ObservableProperty]
-    private LoaderKind _selectedLoader = LoaderKind.Vanilla;
+    private LoaderKind? _selectedLoader = LoaderKind.Vanilla;
 
     [ObservableProperty]
     private LoaderVersion? _selectedLoaderVersion;
@@ -105,7 +105,9 @@ public partial class PlayViewModel : ObservableObject
 
     public bool HasSelection => SelectedVersion is not null;
 
-    public bool NeedsLoaderVersion => SelectedLoader != LoaderKind.Vanilla;
+    public LoaderKind EffectiveLoader => SelectedLoader ?? LoaderKind.Vanilla;
+
+    public bool NeedsLoaderVersion => EffectiveLoader != LoaderKind.Vanilla;
 
     public bool HasGroupVersions => GroupVersions.Count > 0;
 
@@ -121,10 +123,10 @@ public partial class PlayViewModel : ObservableObject
 
     public string SelectedSummary => SelectedVersion is null
         ? "Pick a version"
-        : SelectedLoader == LoaderKind.Vanilla
+        : EffectiveLoader == LoaderKind.Vanilla
             ? "Vanilla " + SelectedVersion.Id
             : $"{(Category == VersionCategory.Vesper ? "Vesper" : "Vanilla")} + " +
-              $"{SelectedLoader.DisplayName()} {SelectedVersion.Id}";
+              $"{EffectiveLoader.DisplayName()} {SelectedVersion.Id}";
 
     public string CategoryBlurb => Category == VersionCategory.Vesper
         ? "Vesper profiles bundle our client mod and a curated performance pack. Fabric or Forge, 1.21 and newer."
@@ -186,15 +188,21 @@ public partial class PlayViewModel : ObservableObject
     [RelayCommand]
     private void OpenMods()
     {
-        var profile = SelectedProfile;
-
-        if (profile is null && SelectedVersion is not null)
+        if (SelectedVersion is null)
         {
-            profile = _profiles.LoadAll().FirstOrDefault(p =>
-                p.MinecraftVersion == SelectedVersion.Id && p.Loader == SelectedLoader);
+            StatusText = "Pick a version first";
+            return;
         }
 
-        Mods.Open(profile ?? Profiles.FirstOrDefault());
+        if (EffectiveLoader == LoaderKind.Vanilla)
+        {
+            StatusText = "Pick a mod loader before adding mods";
+            return;
+        }
+
+        var profile = ResolveEphemeralProfile();
+        RefreshProfiles();
+        Mods.Open(profile);
     }
 
     [RelayCommand]
@@ -227,7 +235,7 @@ public partial class PlayViewModel : ObservableObject
         var profile = _profiles.Create(
             name,
             SelectedVersion.Id,
-            SelectedLoader,
+            EffectiveLoader,
             SelectedLoaderVersion?.Version,
             Category == VersionCategory.Vesper);
 
@@ -278,18 +286,18 @@ public partial class PlayViewModel : ObservableObject
             var profile = SelectedProfile ?? ResolveEphemeralProfile();
 
             profile.MinecraftVersion = SelectedVersion.Id;
-            profile.Loader = SelectedLoader;
+            profile.Loader = EffectiveLoader;
             profile.LoaderVersion = SelectedLoaderVersion?.Version;
             profile.IsVesperProfile = Category == VersionCategory.Vesper;
 
-            if (SelectedLoader == LoaderKind.Vanilla)
+            if (EffectiveLoader == LoaderKind.Vanilla)
             {
                 profile.LaunchVersionId = null;
             }
             else
             {
-                StatusText = $"Installing {SelectedLoader.DisplayName()}";
-                var installer = _loaders.For(SelectedLoader);
+                StatusText = $"Installing {EffectiveLoader.DisplayName()}";
+                var installer = _loaders.For(EffectiveLoader);
                 profile.LaunchVersionId = await installer.InstallAsync(
                     SelectedVersion.Id,
                     SelectedLoaderVersion?.Version
@@ -332,13 +340,13 @@ public partial class PlayViewModel : ObservableObject
     {
         var existing = _profiles.LoadAll().FirstOrDefault(p =>
             p.MinecraftVersion == SelectedVersion!.Id &&
-            p.Loader == SelectedLoader &&
+            p.Loader == EffectiveLoader &&
             p.IsVesperProfile == (Category == VersionCategory.Vesper));
 
         return existing ?? _profiles.Create(
             SelectedSummary,
             SelectedVersion!.Id,
-            SelectedLoader,
+            EffectiveLoader,
             SelectedLoaderVersion?.Version,
             Category == VersionCategory.Vesper);
     }
@@ -387,21 +395,27 @@ public partial class PlayViewModel : ObservableObject
 
     private void RebuildLoaderOptions()
     {
-        AvailableLoaders.Clear();
+        var desired = Category == VersionCategory.Vesper
+            ? new[] { LoaderKind.Fabric, LoaderKind.Forge }
+            : Enum.GetValues<LoaderKind>();
 
-        if (Category == VersionCategory.Vesper)
+        var previous = SelectedLoader;
+
+        for (var i = AvailableLoaders.Count - 1; i >= 0; i--)
         {
-            AvailableLoaders.Add(LoaderKind.Fabric);
-            AvailableLoaders.Add(LoaderKind.Forge);
+            if (!desired.Contains(AvailableLoaders[i]))
+                AvailableLoaders.RemoveAt(i);
         }
-        else
+
+        foreach (var kind in desired)
         {
-            foreach (var kind in Enum.GetValues<LoaderKind>())
+            if (!AvailableLoaders.Contains(kind))
                 AvailableLoaders.Add(kind);
         }
 
-        if (!AvailableLoaders.Contains(SelectedLoader))
-            SelectedLoader = AvailableLoaders[0];
+        SelectedLoader = previous is not null && AvailableLoaders.Contains(previous.Value)
+            ? previous
+            : AvailableLoaders.FirstOrDefault();
     }
 
     private async Task RefreshLoaderVersionsAsync()
@@ -409,15 +423,15 @@ public partial class PlayViewModel : ObservableObject
         LoaderVersions.Clear();
         SelectedLoaderVersion = null;
 
-        if (SelectedVersion is null || SelectedLoader == LoaderKind.Vanilla)
+        if (SelectedVersion is null || EffectiveLoader == LoaderKind.Vanilla)
         {
             OnPropertyChanged(nameof(NeedsLoaderVersion));
             return;
         }
 
-        if (!_loaders.Supports(SelectedLoader))
+        if (!_loaders.Supports(EffectiveLoader))
         {
-            StatusText = SelectedLoader.DisplayName() + " support is not wired up yet";
+            StatusText = EffectiveLoader.DisplayName() + " support is not wired up yet";
             return;
         }
 
@@ -425,7 +439,7 @@ public partial class PlayViewModel : ObservableObject
 
         try
         {
-            var versions = await _loaders.For(SelectedLoader).ListVersionsAsync(SelectedVersion.Id);
+            var versions = await _loaders.For(EffectiveLoader).ListVersionsAsync(SelectedVersion.Id);
 
             foreach (var version in versions)
                 LoaderVersions.Add(version);
@@ -487,8 +501,9 @@ public partial class PlayViewModel : ObservableObject
         _ = RefreshLoaderVersionsAsync();
     }
 
-    partial void OnSelectedLoaderChanged(LoaderKind value)
+    partial void OnSelectedLoaderChanged(LoaderKind? value)
     {
+        OnPropertyChanged(nameof(EffectiveLoader));
         OnPropertyChanged(nameof(SelectedSummary));
         OnPropertyChanged(nameof(NeedsLoaderVersion));
         _ = RefreshLoaderVersionsAsync();

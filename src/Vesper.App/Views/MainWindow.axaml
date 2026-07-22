@@ -146,16 +146,31 @@
                 </StackPanel>
               </StackPanel>
 
-              <Border IsVisible="{Binding Accounts.DeviceCode, Converter={x:Static ObjectConverters.IsNotNull}}"
+              <Border IsVisible="{Binding Accounts.HasDeviceCode}"
                       Background="{DynamicResource BgElevatedBrush}" CornerRadius="11" Padding="13">
-                <StackPanel Spacing="6">
+                <StackPanel Spacing="9">
                   <TextBlock Classes="label" Text="ENTER THIS CODE" />
-                  <SelectableTextBlock Text="{Binding Accounts.DeviceCode}"
-                                       FontSize="21" FontWeight="Bold"
-                                       Foreground="{DynamicResource AccentBrush}" />
-                  <SelectableTextBlock Text="{Binding Accounts.DeviceVerificationUri}"
-                                       FontSize="11"
-                                       Foreground="{DynamicResource TextMutedBrush}" />
+                  <Grid ColumnDefinitions="*,Auto">
+                    <SelectableTextBlock Grid.Column="0" Text="{Binding Accounts.DeviceCode}"
+                                         FontSize="22" FontWeight="Bold" VerticalAlignment="Center"
+                                         Foreground="{DynamicResource AccentBrush}" />
+                    <Button Grid.Column="1" Classes="ghost" Padding="11,7"
+                            ToolTip.Tip="Copy the code again"
+                            Command="{Binding Accounts.CopyCodeCommand}">
+                      <StackPanel Orientation="Horizontal" Spacing="7">
+                        <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconCheck}" />
+                        <TextBlock Text="Copy" FontSize="12" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+                  <Button Classes="ghost" HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Center"
+                          Command="{Binding Accounts.OpenVerificationPageCommand}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconGlobe}" />
+                      <TextBlock Text="Open the sign-in page again" FontSize="12" />
+                    </StackPanel>
+                  </Button>
                 </StackPanel>
               </Border>
 
