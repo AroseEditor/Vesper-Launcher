@@ -49,9 +49,6 @@ jobs:
           - os: macos-latest
             rid: osx-x64
             label: macOS Intel
-          - os: ubuntu-latest
-            rid: linux-x64
-            label: Linux x64
     steps:
       - uses: actions/checkout@v4
 
@@ -107,15 +104,6 @@ jobs:
           mkdir -p artifacts
           hdiutil create -volname "Vesper Launcher" -srcfolder build -ov -format UDZO \
             "artifacts/VesperLauncher-${{ needs.version.outputs.value }}-${{ matrix.rid }}.dmg"
-
-      - name: Package Linux
-        if: startsWith(matrix.rid, 'linux')
-        shell: bash
-        run: |
-          mkdir -p artifacts
-          tar -czf artifacts/VesperLauncher-${{ needs.version.outputs.value }}-${{ matrix.rid }}.tar.gz \
-            -C publish/${{ matrix.rid }} .
-
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.rid }}
@@ -230,7 +218,6 @@ jobs:
             echo ''
             echo '- Windows: the `.exe`'
             echo '- macOS: the `.dmg` for your chip, Apple Silicon or Intel'
-            echo '- Linux: the `.tar.gz`'
             echo ''
             echo '*macOS builds are unsigned. Right-click the app and choose Open the first time, or run* `xattr -dr com.apple.quarantine "/Applications/Vesper Launcher.app"`*.*'
             echo ''

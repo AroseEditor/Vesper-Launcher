@@ -12,7 +12,7 @@
 [![Release](https://img.shields.io/github/v/release/AroseEditor/Vesper-Launcher?include_prereleases&label=release)](../../releases)
 [![License](https://img.shields.io/badge/license-source--available-B57EDC)](LICENSE)
 [![.NET](https://img.shields.io/badge/.NET-10-9A5FC4)](https://dotnet.microsoft.com)
-[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-D14FE8)](../../releases)
+[![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS-D14FE8)](../../releases)
 
 </div>
 
@@ -90,7 +90,6 @@ Grab the latest build from [Releases](../../releases).
 | Windows | `VesperLauncher-<version>-win-x64.exe` | Self-contained, no .NET install needed |
 | macOS (Apple Silicon) | `...-osx-arm64.dmg` | See the Gatekeeper note below |
 | macOS (Intel) | `...-osx-x64.dmg` | See the Gatekeeper note below |
-| Linux | `...-linux-x64.tar.gz` | Extract and run `VesperLauncher` |
 
 **macOS builds are unsigned.** Notarisation requires a paid Apple Developer account. Until that is in
 place, right-click the app and choose *Open* the first time, or run:
@@ -123,7 +122,10 @@ dotnet publish src/Vesper.App -c Release -r win-x64 \
   --self-contained true -p:PublishSingleFile=true -o publish
 ```
 
-Swap `win-x64` for `osx-arm64`, `osx-x64`, or `linux-x64` as needed.
+Swap `win-x64` for `osx-arm64` or `osx-x64` as needed.
+
+Linux is not built for releases. The code is cross-platform and CI still compiles and tests on Linux,
+so `-r linux-x64` will work if you publish it yourself, but no Linux artifact ships.
 
 ### Building the mod
 
