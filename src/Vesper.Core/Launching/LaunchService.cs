@@ -96,10 +96,15 @@ public sealed class LaunchService
         if (!string.IsNullOrWhiteSpace(profile.JavaPath))
             option.JavaPath = profile.JavaPath;
 
-        if (profile.ExtraJvmArguments.Count > 0)
+        var extra = profile.UseOptimisedJvmArguments
+            ? JvmTuning.Merge(
+                JvmTuning.Recommended(profile.MaximumRamMb), profile.ExtraJvmArguments)
+            : profile.ExtraJvmArguments;
+
+        if (extra.Count > 0)
         {
             option.ExtraJvmArguments = MLaunchOption.DefaultExtraJvmArguments
-                .Concat(profile.ExtraJvmArguments.Select(a => new MArgument(a)))
+                .Concat(extra.Select(a => new MArgument(a)))
                 .ToList();
         }
 

@@ -305,6 +305,18 @@ public partial class PlayViewModel : ObservableObject
                     cancellationToken);
             }
 
+            if (Category == VersionCategory.Vesper)
+            {
+                var bundle = new VesperProfileInstaller(_paths);
+                var bundleProgress = new Progress<string>(message => StatusText = message);
+
+                var report = await bundle.InstallBundleAsync(
+                    profile, profile.InstallPerformanceBundle, bundleProgress, cancellationToken);
+
+                if (report.Failed.Count > 0)
+                    StatusText = report.Failed[0];
+            }
+
             _profiles.Save(profile);
 
             var progress = new Progress<LaunchProgress>(p =>

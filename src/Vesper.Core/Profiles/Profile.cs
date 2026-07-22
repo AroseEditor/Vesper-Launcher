@@ -32,6 +32,10 @@ public sealed class Profile
 
     public List<string> ExtraJvmArguments { get; set; } = [];
 
+    public bool UseOptimisedJvmArguments { get; set; } = true;
+
+    public bool InstallPerformanceBundle { get; set; } = true;
+
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? LastPlayedAt { get; set; }

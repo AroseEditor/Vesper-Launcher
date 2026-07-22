@@ -28,3 +28,10 @@ config = "vesper-common.mixins.json"
     versionRange = "[1.21,1.22)"
     ordering = "NONE"
     side = "CLIENT"
+
+[[dependencies.vesper]]
+    modId = "architectury"
+    type = "required"
+    versionRange = "[13.0.0,)"
+    ordering = "AFTER"
+    side = "CLIENT"
