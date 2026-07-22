@@ -125,7 +125,6 @@ jobs:
   mod:
     name: Vesper mod
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -144,17 +143,18 @@ jobs:
           java-version: '21'
 
       - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
         if: steps.exists.outputs.found == 'true'
 
       - name: Build mod
         id: build
         if: steps.exists.outputs.found == 'true'
-        continue-on-error: true
         working-directory: mod
         run: gradle build -Penabled_platforms=fabric,neoforge --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
-        if: steps.build.outcome == 'success'
+        if: steps.exists.outputs.found == 'true'
         with:
           name: mod
           path: mod/*/build/libs/*.jar
