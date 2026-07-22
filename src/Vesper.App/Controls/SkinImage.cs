@@ -80,7 +80,11 @@ public static class SkinImage
         }
 
         using var stream = new MemoryStream();
+
+#pragma warning disable CS0618
         bitmap.Save(stream);
+#pragma warning restore CS0618
+
         return stream.ToArray();
     }
 
