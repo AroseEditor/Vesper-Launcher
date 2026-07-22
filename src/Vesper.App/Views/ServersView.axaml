@@ -78,9 +78,12 @@
                            Text="{Binding NewServerName, Mode=TwoWay}" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Spacing="7">
-                  <TextBlock Classes="label" Text="PROXY HOSTNAME" />
-                  <TextBox Classes="field" PlaceholderText="play.example.com"
-                           Text="{Binding NewServerProxyHostname, Mode=TwoWay}" />
+                  <TextBlock Classes="label" Text="INTERNET ACCESS" />
+                  <CheckBox Content="Open the port on my router automatically"
+                            IsChecked="{Binding NewServerForwardPort, Mode=TwoWay}"
+                            Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Classes="subtitle" FontSize="11" TextWrapping="Wrap"
+                             Text="Uses UPnP. Your router must have UPnP or NAT-PMP enabled." />
                 </StackPanel>
               </Grid>
 

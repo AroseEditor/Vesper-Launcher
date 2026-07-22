@@ -5,6 +5,7 @@
     <PackageReference Include="CmlLib.Core.Installer.Forge" Version="1.1.1" />
     <PackageReference Include="CmlLib.Core.Installer.NeoForge" Version="4.0.1" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="9.0.0" />
+    <PackageReference Include="Mono.Nat" Version="3.0.4" />
   </ItemGroup>
 
 </Project>

@@ -15,6 +15,7 @@ public partial class ServersViewModel : ObservableObject
     private readonly VesperPaths _paths;
     private readonly ServerManager _manager;
     private readonly Dictionary<string, ServerProcess> _processes = [];
+    private readonly PortForwarding _forwarding = new();
 
     private ServerProperties? _properties;
 
@@ -43,7 +44,13 @@ public partial class ServersViewModel : ObservableObject
     private int _newServerRamMb = 2048;
 
     [ObservableProperty]
-    private string _newServerProxyHostname = string.Empty;
+    private bool _newServerForwardPort = true;
+
+    [ObservableProperty]
+    private bool _isForwarding;
+
+    [ObservableProperty]
+    private string _publicAddress = string.Empty;
 
     [ObservableProperty]
     private string _newServerMotd = "A Vesper server";
@@ -159,9 +166,7 @@ public partial class ServersViewModel : ObservableObject
         server.Port = NewServerPort;
         server.Motd = NewServerMotd;
         server.OnlineMode = NewServerOnlineMode;
-        server.CustomDomain = string.IsNullOrWhiteSpace(NewServerProxyHostname)
-            ? null
-            : NewServerProxyHostname.Trim();
+        server.ForwardPort = NewServerForwardPort;
 
         _manager.Save(server);
 
@@ -233,6 +238,9 @@ public partial class ServersViewModel : ObservableObject
 
             _manager.MarkStarted(server);
             StatusText = "Started " + server.Name;
+
+            if (server.ForwardPort)
+                _ = OpenPortAsync();
         }
         catch (Exception e)
         {
@@ -246,7 +254,54 @@ public partial class ServersViewModel : ObservableObject
         if (SelectedServer is null)
             return;
 
-        await ProcessFor(SelectedServer).StopAsync();
+        var server = SelectedServer;
+        await ProcessFor(server).StopAsync();
+
+        if (server.ForwardPort)
+        {
+            try
+            {
+                await _forwarding.CloseAsync(server.Port);
+                PublicAddress = string.Empty;
+            }
+            catch (Exception)
+            {
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenPortAsync()
+    {
+        if (SelectedServer is null || IsForwarding)
+            return;
+
+        var server = SelectedServer;
+        IsForwarding = true;
+        StatusText = "Asking your router to open port " + server.Port;
+
+        try
+        {
+            var result = await _forwarding.OpenAsync(server.Port);
+
+            StatusText = result.Message;
+
+            if (result.Success)
+            {
+                server.PublicAddress = result.ExternalAddress;
+                PublicAddress = result.ShareableAddress ?? string.Empty;
+                _manager.Save(server);
+                OnPropertyChanged(nameof(SelectedAddress));
+            }
+        }
+        catch (Exception e)
+        {
+            StatusText = "Port forwarding failed: " + e.Message;
+        }
+        finally
+        {
+            IsForwarding = false;
+        }
     }
 
     [RelayCommand]

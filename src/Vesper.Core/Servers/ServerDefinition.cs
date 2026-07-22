@@ -26,9 +26,9 @@ public sealed class ServerDefinition
 
     public bool OnlineMode { get; set; }
 
-    public string? CustomDomain { get; set; }
+    public bool ForwardPort { get; set; } = true;
 
-    public bool UsePlayit { get; set; }
+    public string? PublicAddress { get; set; }
 
     public string? JavaPath { get; set; }
 
@@ -37,9 +37,9 @@ public sealed class ServerDefinition
     public DateTimeOffset? LastStartedAt { get; set; }
 
     [JsonIgnore]
-    public string Address => string.IsNullOrWhiteSpace(CustomDomain)
+    public string Address => string.IsNullOrWhiteSpace(PublicAddress)
         ? $"localhost:{Port}"
-        : CustomDomain;
+        : $"{PublicAddress}:{Port}";
 
     [JsonIgnore]
     public string Summary => $"{Project} {MinecraftVersion} build {Build}";
