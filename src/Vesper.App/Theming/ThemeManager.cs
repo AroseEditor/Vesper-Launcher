@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Media;
+using Vesper.App.Controls;
 using Vesper.Core.Theming;
 
 namespace Vesper.App.Theming;
@@ -12,7 +13,7 @@ public sealed class ThemeManager
 
     public event EventHandler<VesperTheme>? Changed;
 
-    public void Apply(VesperTheme theme)
+    public void Apply(VesperTheme theme, bool persistCurrent = true)
     {
         var resources = Application.Current?.Resources;
         if (resources is null)
@@ -30,7 +31,16 @@ public sealed class ThemeManager
         resources["AccentGlowBrush"] = new SolidColorBrush(
             ParseColor(theme.Resolve("accent")), 0.28);
 
-        Current = theme;
+        try
+        {
+            resources["VesperLogo"] = LogoTint.Rotate(theme.LogoHue);
+        }
+        catch (Exception)
+        {
+        }
+
+        if (persistCurrent)
+            Current = theme;
         Changed?.Invoke(this, theme);
     }
 

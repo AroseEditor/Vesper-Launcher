@@ -19,6 +19,17 @@
           </StackPanel>
           <TextBlock Classes="subtitle" TextWrapping="Wrap"
                      Text="Every surface binds to theme tokens, so switching recolours the whole app instantly. Drop your own JSON theme in the themes folder to add more." />
+          <Button Classes="primary" HorizontalAlignment="Stretch"
+                  HorizontalContentAlignment="Center" Padding="0,12"
+                  Command="{Binding CustomiseThemeCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Path Classes="icon solid" Width="15" Height="15"
+                    Fill="{DynamicResource AccentContrastBrush}"
+                    Data="{StaticResource IconPalette}" />
+              <TextBlock Text="Custom Theme Mode" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+
           <ItemsControl ItemsSource="{Binding Themes}">
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="thm:VesperTheme">

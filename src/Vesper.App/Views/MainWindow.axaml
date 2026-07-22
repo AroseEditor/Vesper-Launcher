@@ -24,7 +24,7 @@
 
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="11"
                     Margin="15,0,0,0" VerticalAlignment="Center">
-          <Image Source="avares://VesperLauncher/Assets/icon.png" Width="24" Height="24" />
+          <Image Source="{DynamicResource VesperLogo}" Width="24" Height="24" />
           <TextBlock Text="Vesper Launcher" FontWeight="SemiBold" FontSize="13.5"
                      Foreground="{DynamicResource TextPrimaryBrush}"
                      VerticalAlignment="Center" />
@@ -272,6 +272,8 @@
     </Grid>
 
     <views:ModsOverlay Grid.Row="0" Grid.RowSpan="2" DataContext="{Binding Play.Mods}" />
+
+    <views:ThemeEditorOverlay Grid.Row="0" Grid.RowSpan="2" DataContext="{Binding Settings.Editor}" />
 
   </Grid>
 </Window>

@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vesper.App.ViewModels"
+             x:Class="Vesper.App.Views.ThemeEditorOverlay"
+             x:DataType="vm:ThemeEditorViewModel">
+
+  <Border Background="#B8000000" IsVisible="{Binding IsOpen}">
+    <Border Classes="popIn" Width="900" Height="640"
+            Background="{DynamicResource BgElevatedBrush}"
+            BorderBrush="{DynamicResource BorderStrongBrush}"
+            BorderThickness="1" CornerRadius="18"
+            HorizontalAlignment="Center" VerticalAlignment="Center">
+
+      <Grid RowDefinitions="Auto,*,Auto">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="22,18,14,12">
+          <StackPanel Grid.Column="0" Spacing="3">
+            <TextBlock Classes="title" FontSize="19" Text="Custom theme" />
+            <TextBlock Classes="subtitle" FontSize="12"
+                       Text="Every colour updates the app as you type. Nothing is kept until you save." />
+          </StackPanel>
+          <Button Grid.Column="1" Classes="chrome danger" Width="36" Height="36" CornerRadius="10"
+                  Command="{Binding CloseCommand}">
+            <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconClose}" />
+          </Button>
+        </Grid>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,260" Margin="22,0,22,0">
+
+          <Border Grid.Column="0" Background="{DynamicResource BgBaseBrush}"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
+                  CornerRadius="13" ClipToBounds="True" Margin="0,0,14,0">
+            <ScrollViewer Padding="14">
+              <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ThemeGroupEntry">
+                    <StackPanel Spacing="8" Margin="0,0,0,18">
+                      <TextBlock Classes="label" Text="{Binding Name}" />
+                      <ItemsControl ItemsSource="{Binding Colors}">
+                        <ItemsControl.ItemTemplate>
+                          <DataTemplate x:DataType="vm:ThemeColorEntry">
+                            <Grid ColumnDefinitions="Auto,*,150" Margin="0,3">
+                              <Border Grid.Column="0" Width="34" Height="34" CornerRadius="9"
+                                      Background="{Binding Swatch}"
+                                      BorderBrush="{DynamicResource BorderStrongBrush}"
+                                      BorderThickness="1" />
+                              <StackPanel Grid.Column="1" Margin="13,0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Label}" FontSize="13"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding Token}" FontSize="10"
+                                           Foreground="{DynamicResource TextFaintBrush}" />
+                              </StackPanel>
+                              <TextBox Grid.Column="2" Classes="field" FontSize="12"
+                                       Text="{Binding Value, Mode=TwoWay}" />
+                            </Grid>
+                          </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+          </Border>
+
+          <ScrollViewer Grid.Column="1">
+            <StackPanel Spacing="16">
+
+              <StackPanel Spacing="7">
+                <TextBlock Classes="label" Text="THEME NAME" />
+                <TextBox Classes="field" Text="{Binding ThemeName, Mode=TwoWay}" />
+              </StackPanel>
+
+              <StackPanel Spacing="9">
+                <TextBlock Classes="label" Text="LOGO" />
+                <Border Background="{DynamicResource BgBaseBrush}" CornerRadius="13" Padding="16"
+                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+                  <Image Source="{Binding LogoPreview}" Width="112" Height="112"
+                         HorizontalAlignment="Center" />
+                </Border>
+                <TextBlock Classes="subtitle" FontSize="11" TextWrapping="Wrap"
+                           Text="Rotates the logo's hue so it matches your accent." />
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBlock Grid.Column="0" Classes="label" Text="HUE" />
+                  <TextBlock Grid.Column="1" FontSize="11.5"
+                             Foreground="{DynamicResource AccentBrush}"
+                             Text="{Binding LogoHue, StringFormat='{}{0:0} deg'}" />
+                </Grid>
+                <Slider Minimum="0" Maximum="359" TickFrequency="1" IsSnapToTickEnabled="True"
+                        Value="{Binding LogoHue, Mode=TwoWay}" />
+                <UniformGrid Columns="2" ColumnSpacing="8">
+                  <Button Classes="ghost" HorizontalContentAlignment="Center" Content="-15"
+                          Command="{Binding ShiftHueCommand}" CommandParameter="-15" />
+                  <Button Classes="ghost" HorizontalContentAlignment="Center" Content="+15"
+                          Command="{Binding ShiftHueCommand}" CommandParameter="15" />
+                </UniformGrid>
+              </StackPanel>
+
+              <Button Classes="ghost" HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Center"
+                      Command="{Binding ResetToBaseCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="9">
+                  <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Reset colours" FontSize="12.5" />
+                </StackPanel>
+              </Button>
+
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="22,14,22,16">
+          <TextBlock Grid.Column="0" Text="{Binding StatusText}" Classes="subtitle" FontSize="12"
+                     VerticalAlignment="Center" TextWrapping="Wrap" />
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="9">
+            <Button Classes="ghost" Content="Cancel" Command="{Binding CloseCommand}" />
+            <Button Classes="primary" Padding="22,10" Content="Save theme"
+                    Command="{Binding SaveCommand}" />
+          </StackPanel>
+        </Grid>
+
+      </Grid>
+    </Border>
+  </Border>
+</UserControl>

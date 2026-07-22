@@ -10,6 +10,8 @@ public sealed class VesperTheme
 
     public Dictionary<string, string> Colors { get; set; } = [];
 
+    public double LogoHue { get; set; }
+
     public static IReadOnlyList<string> Tokens { get; } =
     [
         "bgBase",
@@ -61,6 +63,7 @@ public sealed class VesperTheme
     {
         Name = "Midnight Ember",
         IsBuiltIn = true,
+        LogoHue = -78,
         Colors = new Dictionary<string, string>
         {
             ["bgBase"] = "#0B0907",
@@ -98,8 +101,43 @@ public sealed class VesperTheme
     {
         Name = name,
         IsBuiltIn = false,
+        LogoHue = LogoHue,
         Colors = new Dictionary<string, string>(Colors),
     };
+
+    public static string Label(string token) => token switch
+    {
+        "bgBase" => "Window background",
+        "bgElevated" => "Panels and title bar",
+        "bgCard" => "Cards and popovers",
+        "bgHover" => "Hover highlight",
+        "borderSubtle" => "Dividers",
+        "borderStrong" => "Popover edges",
+        "accent" => "Accent",
+        "accentHover" => "Accent hover",
+        "accentDeep" => "Accent deep",
+        "accentBreath" => "Accent glow",
+        "accentContrast" => "Text on accent",
+        "textPrimary" => "Main text",
+        "textMuted" => "Secondary text",
+        "textFaint" => "Labels and hints",
+        "success" => "Success",
+        "warning" => "Warning",
+        "danger" => "Danger",
+        _ => token,
+    };
+
+    public static string Group(string token) => token switch
+    {
+        "bgBase" or "bgElevated" or "bgCard" or "bgHover" => "Backgrounds",
+        "borderSubtle" or "borderStrong" => "Borders",
+        "accent" or "accentHover" or "accentDeep" or "accentBreath" or "accentContrast" => "Accents",
+        "textPrimary" or "textMuted" or "textFaint" => "Text",
+        _ => "Status",
+    };
+
+    public static IReadOnlyList<string> Groups { get; } =
+        ["Backgrounds", "Accents", "Text", "Borders", "Status"];
 
     public static string ResourceKey(string token) =>
         char.ToUpperInvariant(token[0]) + token[1..];

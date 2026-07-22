@@ -42,6 +42,8 @@ public partial class SettingsViewModel : ObservableObject
     {
         _paths = paths;
         _themeStore = new ThemeStore(paths);
+        Editor = new ThemeEditorViewModel(paths);
+        Editor.Saved += (_, _) => ReloadThemes();
 
         foreach (var theme in _themeStore.LoadAll())
             Themes.Add(theme);
@@ -50,6 +52,16 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     public ObservableCollection<VesperTheme> Themes { get; } = [];
+
+    public ThemeEditorViewModel Editor { get; }
+
+    private void ReloadThemes()
+    {
+        Themes.Clear();
+
+        foreach (var theme in _themeStore.LoadAll())
+            Themes.Add(theme);
+    }
 
     public string RootDirectory => _paths.Root;
 
@@ -66,6 +78,10 @@ public partial class SettingsViewModel : ObservableObject
         ThemeManager.Shared.Apply(theme);
         StatusText = "Applied " + theme.Name;
     }
+
+    [RelayCommand]
+    private void CustomiseTheme() =>
+        Editor.Open(ActiveTheme ?? ThemeManager.Shared.Current);
 
     [RelayCommand]
     private void OpenRootDirectory()
