@@ -44,7 +44,7 @@ Nothing is written to your `.minecraft` folder. Vesper keeps its own directory.
 | **Versions** | Every Mojang release | Releases, snapshots, betas, alphas, all the way back |
 | **Loaders** | Fabric, Forge, NeoForge, Quilt | Pick the loader *and* the loader version, not just latest |
 | **OptiFine** | Manual import | Its licence forbids redistribution, so you supply the jar and Vesper runs the installer |
-| **Vesper Loader** | Fabric or Forge, 1.21+ | Our mod plus a curated performance bundle, installed in one click |
+| **Vesper Loader** | Fabric or NeoForge, 1.21+ | Our mod plus a curated performance bundle, installed in one click |
 | **Accounts** | Microsoft and local | Local accounts need no Microsoft account and have no restrictions |
 | **Skins** | Change skins for both | Real API calls for Microsoft accounts, mod-driven rendering for local ones |
 | **Servers** | Paper and Purpur | Start, stop, restart, live console, plugins, playit.gg tunnel |
@@ -153,7 +153,11 @@ The installer must be built from a folder publish, not a single-file one.
 
 ### Building the mod
 
-The mod is a separate Gradle project under `mod/`. It needs **JDK 21** and **Gradle 8.10 or newer**.
+The mod is a separate Gradle project under `mod/`. It needs **JDK 21** (Gradle cannot run on Java 25)
+and **Gradle 8.9**. It builds for Fabric and NeoForge.
+
+Forge is not supported on 1.21: Architectury's `architectury-forge` artifact stops at 11.1.17, which
+targets 1.20.x. NeoForge is Forge's successor for 1.21 and is what Vesper targets instead.
 No Gradle wrapper is committed, so either use a system Gradle:
 
 ```bash
@@ -198,7 +202,7 @@ src/
   Vesper.Core.Tests/  Unit tests
 mod/                  Gradle multiloader project for the Vesper client mod
   common/             Shared logic: motion blur, HUD layout, config, skin resolution
-  fabric/ forge/      Loader entrypoints
+  fabric/ neoforge/   Loader entrypoints
 brand/                Icon source and generator
 scripts/              Convention checks used by CI
 ```
@@ -295,7 +299,8 @@ Any token you leave out falls back to the Mauve Black default, so a three-line t
 - [x] Skins page with a 3D model editor
 - [x] Servers tab with Paper install, live console and a full server.properties editor
 - [ ] playit.gg tunnel management
-- [ ] Vesper mod wired into the game: motion blur pass, HUD rendering, offline skin injection
+- [x] Vesper mod builds for Fabric and NeoForge with an in-game menu, 37 modules and a live HUD
+- [ ] Motion blur render pass and the remaining module behaviours
 - [ ] Vesper Loader one-click profiles
 
 ---

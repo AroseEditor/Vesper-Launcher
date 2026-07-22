@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[52,)"
+loaderVersion = "[1,)"
 license = "LicenseRef-Vesper"
 issueTrackerURL = "https://github.com/AroseEditor/Vesper-Launcher/issues"
 
@@ -12,16 +12,19 @@ description = '''
 Motion blur, a configurable HUD, cosmetics and offline skin rendering for Vesper Launcher.
 '''
 
+[[mixins]]
+config = "vesper-common.mixins.json"
+
 [[dependencies.vesper]]
-    modId = "forge"
-    mandatory = true
-    versionRange = "[52,)"
+    modId = "neoforge"
+    type = "required"
+    versionRange = "[21.1,)"
     ordering = "NONE"
     side = "CLIENT"
 
 [[dependencies.vesper]]
     modId = "minecraft"
-    mandatory = true
-    versionRange = "[1.21,)"
+    type = "required"
+    versionRange = "[1.21,1.22)"
     ordering = "NONE"
     side = "CLIENT"

@@ -24,5 +24,5 @@ public static class LoaderKindExtensions
     };
 
     public static bool SupportsVesperProfile(this LoaderKind loader) =>
-        loader is LoaderKind.Fabric or LoaderKind.Forge;
+        loader is LoaderKind.Fabric or LoaderKind.NeoForge;
 }

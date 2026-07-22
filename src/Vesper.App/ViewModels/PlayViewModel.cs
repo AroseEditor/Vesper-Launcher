@@ -129,7 +129,7 @@ public partial class PlayViewModel : ObservableObject
               $"{EffectiveLoader.DisplayName()} {SelectedVersion.Id}";
 
     public string CategoryBlurb => Category == VersionCategory.Vesper
-        ? "Vesper profiles bundle our client mod and a curated performance pack. Fabric or Forge, 1.21 and newer."
+        ? "Vesper profiles bundle our client mod and a curated performance pack. Fabric or NeoForge, 1.21 and newer."
         : "Every version Mojang has published, with any loader you like.";
 
     public async Task LoadAsync(CancellationToken cancellationToken = default)
@@ -396,7 +396,7 @@ public partial class PlayViewModel : ObservableObject
     private void RebuildLoaderOptions()
     {
         var desired = Category == VersionCategory.Vesper
-            ? new[] { LoaderKind.Fabric, LoaderKind.Forge }
+            ? new[] { LoaderKind.Fabric, LoaderKind.NeoForge }
             : Enum.GetValues<LoaderKind>();
 
         var previous = SelectedLoader;
