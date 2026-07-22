@@ -16,8 +16,13 @@ public partial class ServersViewModel : ObservableObject
     private readonly ServerManager _manager;
     private readonly Dictionary<string, ServerProcess> _processes = [];
 
+    private ServerProperties? _properties;
+
     [ObservableProperty]
     private ServerDefinition? _selectedServer;
+
+    [ObservableProperty]
+    private bool _showProperties;
 
     [ObservableProperty]
     private string? _selectedVersion;
@@ -27,6 +32,27 @@ public partial class ServersViewModel : ObservableObject
 
     [ObservableProperty]
     private string _newServerName = string.Empty;
+
+    [ObservableProperty]
+    private string _newServerTemplate = "paper";
+
+    [ObservableProperty]
+    private int _newServerSlots = 20;
+
+    [ObservableProperty]
+    private int _newServerRamMb = 2048;
+
+    [ObservableProperty]
+    private string _newServerProxyHostname = string.Empty;
+
+    [ObservableProperty]
+    private string _newServerMotd = "A Vesper server";
+
+    [ObservableProperty]
+    private int _newServerPort = 25565;
+
+    [ObservableProperty]
+    private bool _newServerOnlineMode;
 
     [ObservableProperty]
     private string _commandText = string.Empty;
@@ -60,6 +86,12 @@ public partial class ServersViewModel : ObservableObject
     public ObservableCollection<PaperBuild> Builds { get; } = [];
 
     public ObservableCollection<string> Console { get; } = [];
+
+    public ObservableCollection<ServerPropertyGroupViewModel> PropertyGroups { get; } = [];
+
+    public IReadOnlyList<string> Templates { get; } = ["paper", "purpur", "folia", "velocity"];
+
+    public bool IsPaperTemplate => NewServerTemplate == "paper";
 
     public string ServersDirectory => _paths.ServersDir;
 
@@ -116,14 +148,31 @@ public partial class ServersViewModel : ObservableObject
             return;
         }
 
-        var name = string.IsNullOrWhiteSpace(NewServerName) ? "Paper " + SelectedVersion : NewServerName;
-        var server = _manager.Create(name, SelectedVersion!);
+        var name = string.IsNullOrWhiteSpace(NewServerName)
+            ? $"{NewServerTemplate} {SelectedVersion}"
+            : NewServerName;
+
+        var server = _manager.Create(name, SelectedVersion!, NewServerTemplate);
+
+        server.MaxPlayers = Math.Max(1, NewServerSlots);
+        server.MemoryMb = Math.Max(512, NewServerRamMb);
+        server.Port = NewServerPort;
+        server.Motd = NewServerMotd;
+        server.OnlineMode = NewServerOnlineMode;
+        server.CustomDomain = string.IsNullOrWhiteSpace(NewServerProxyHostname)
+            ? null
+            : NewServerProxyHostname.Trim();
+
+        _manager.Save(server);
 
         Refresh();
         SelectedServer = Servers.FirstOrDefault(s => s.Id == server.Id);
         IsCreating = false;
         StatusText = "Created " + server.Name + ". Install it to download the jar.";
     }
+
+    [RelayCommand]
+    private void SetTemplate(string template) => NewServerTemplate = template;
 
     [RelayCommand]
     private async Task InstallAsync(CancellationToken cancellationToken)
@@ -325,6 +374,44 @@ public partial class ServersViewModel : ObservableObject
         OnPropertyChanged(nameof(IsInstalled));
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(SelectedAddress));
+
+        LoadProperties();
+    }
+
+    [RelayCommand]
+    private void ToggleProperties() => ShowProperties = !ShowProperties;
+
+    private void LoadProperties()
+    {
+        PropertyGroups.Clear();
+
+        if (SelectedServer is null)
+            return;
+
+        var path = Path.Combine(_manager.DirectoryFor(SelectedServer.Id), "server.properties");
+        _properties = ServerProperties.Load(path);
+
+        foreach (var groupName in ServerPropertySchema.Groups)
+        {
+            var group = new ServerPropertyGroupViewModel(groupName);
+
+            foreach (var spec in ServerPropertySchema.All.Where(s => s.Group == groupName))
+                group.Items.Add(new ServerPropertyViewModel(spec, _properties.Get(spec.Key), SaveProperties));
+
+            if (group.Items.Count > 0)
+                PropertyGroups.Add(group);
+        }
+    }
+
+    private void SaveProperties()
+    {
+        if (SelectedServer is null || _properties is null)
+            return;
+
+        foreach (var item in PropertyGroups.SelectMany(g => g.Items))
+            _properties.Set(item.Key, item.Value);
+
+        _properties.Save(Path.Combine(_manager.DirectoryFor(SelectedServer.Id), "server.properties"));
     }
 
     partial void OnIsRunningChanged(bool value)
@@ -334,4 +421,7 @@ public partial class ServersViewModel : ObservableObject
     }
 
     partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(CanStart));
+
+    partial void OnNewServerTemplateChanged(string value) =>
+        OnPropertyChanged(nameof(IsPaperTemplate));
 }

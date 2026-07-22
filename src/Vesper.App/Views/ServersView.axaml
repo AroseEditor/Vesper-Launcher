@@ -49,125 +49,263 @@
           </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2" Spacing="9" Margin="0,12,0,0">
-          <StackPanel Spacing="8" IsVisible="{Binding IsCreating}">
-            <TextBlock Classes="label" Text="NAME" />
-            <TextBox Classes="field" PlaceholderText="Survival"
-                     Text="{Binding NewServerName, Mode=TwoWay}" />
-            <TextBlock Classes="label" Text="VERSION" />
-            <ComboBox Classes="field" ItemsSource="{Binding Versions}"
-                      SelectedItem="{Binding SelectedVersion, Mode=TwoWay}" />
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <Button Classes="primary" Padding="16,8" Content="Create"
-                      Command="{Binding ConfirmCreateCommand}" />
-              <Button Classes="ghost" Content="Cancel" Command="{Binding CancelCreateCommand}" />
-            </StackPanel>
+        <Button Grid.Row="2" Classes="ghost" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" Margin="0,12,0,0"
+                Command="{Binding BeginCreateCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="9">
+            <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
+            <TextBlock Text="New server" FontSize="12.5" />
           </StackPanel>
-
-          <Button Classes="ghost" HorizontalAlignment="Stretch"
-                  HorizontalContentAlignment="Center"
-                  IsVisible="{Binding !IsCreating}"
-                  Command="{Binding BeginCreateCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
-              <TextBlock Text="New server" FontSize="12.5" />
-            </StackPanel>
-          </Button>
-        </StackPanel>
+        </Button>
       </Grid>
     </Border>
 
-    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto" Margin="26,22,26,22">
+    <Panel Grid.Column="1">
 
-      <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,16">
-        <TextBlock Classes="title" Text="{Binding SelectedServer.Name, FallbackValue='Servers'}" />
-        <TextBlock Classes="subtitle" Text="{Binding StatusText}" TextWrapping="Wrap" />
-      </StackPanel>
-
-      <Border Grid.Row="1" Classes="card" Margin="0,0,0,14" IsVisible="{Binding HasSelection}">
-        <StackPanel Spacing="13">
-          <StackPanel Orientation="Horizontal" Spacing="9">
-            <Button Classes="primary" Padding="17,10"
-                    IsEnabled="{Binding CanStart}" Command="{Binding StartCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Classes="icon solid" Width="14" Height="14"
-                      Fill="{DynamicResource AccentContrastBrush}"
-                      Data="{StaticResource IconPlay}" />
-                <TextBlock Text="Start" />
-              </StackPanel>
-            </Button>
-            <Button Classes="ghost" IsEnabled="{Binding CanStop}" Command="{Binding StopCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconStop}" />
-                <TextBlock Text="Stop" FontSize="12.5" />
-              </StackPanel>
-            </Button>
-            <Button Classes="ghost" IsEnabled="{Binding CanStop}" Command="{Binding RestartCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconRefresh}" />
-                <TextBlock Text="Restart" FontSize="12.5" />
-              </StackPanel>
-            </Button>
-            <Button Classes="ghost" IsEnabled="{Binding !IsInstalled}" Command="{Binding InstallCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconDownload}" />
-                <TextBlock Text="Install" FontSize="12.5" />
-              </StackPanel>
-            </Button>
-            <Button Classes="ghost" Command="{Binding OpenFolderCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconFolder}" />
-                <TextBlock Text="Folder" FontSize="12.5" />
-              </StackPanel>
-            </Button>
+      <ScrollViewer IsVisible="{Binding IsCreating}">
+        <StackPanel Margin="30,24" Spacing="18" MaxWidth="860" HorizontalAlignment="Left">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="title" Text="Create a server" />
+            <TextBlock Classes="subtitle" Text="Pick a template and version, then set it up." />
           </StackPanel>
 
-          <ProgressBar Classes="slim" Value="{Binding Progress}" Maximum="100"
-                       IsVisible="{Binding IsBusy}" />
+          <Border Classes="card">
+            <StackPanel Spacing="16">
+              <Grid ColumnDefinitions="*,*" ColumnSpacing="14">
+                <StackPanel Grid.Column="0" Spacing="7">
+                  <TextBlock Classes="label" Text="NAME" />
+                  <TextBox Classes="field" PlaceholderText="Survival"
+                           Text="{Binding NewServerName, Mode=TwoWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="7">
+                  <TextBlock Classes="label" Text="PROXY HOSTNAME" />
+                  <TextBox Classes="field" PlaceholderText="play.example.com"
+                           Text="{Binding NewServerProxyHostname, Mode=TwoWay}" />
+                </StackPanel>
+              </Grid>
 
-          <Grid ColumnDefinitions="Auto,*">
+              <StackPanel Spacing="7">
+                <TextBlock Classes="label" Text="TEMPLATE" />
+                <ItemsControl ItemsSource="{Binding Templates}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="sys:String">
+                      <Button Classes="chip" Margin="0,0,8,8" Content="{Binding}"
+                              Command="{Binding $parent[UserControl].((vm:ServersViewModel)DataContext).SetTemplateCommand}"
+                              CommandParameter="{Binding}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
+              <StackPanel Spacing="7">
+                <TextBlock Classes="label" Text="MINECRAFT VERSION" />
+                <ComboBox Classes="field" ItemsSource="{Binding Versions}"
+                          PlaceholderText="Loading versions"
+                          SelectedItem="{Binding SelectedVersion, Mode=TwoWay}" />
+              </StackPanel>
+
+              <Grid ColumnDefinitions="*,*,*" ColumnSpacing="14">
+                <StackPanel Grid.Column="0" Spacing="7">
+                  <TextBlock Classes="label" Text="SLOTS" />
+                  <NumericUpDown Classes="field" Minimum="1" Maximum="2000" Increment="1"
+                                 Value="{Binding NewServerSlots, Mode=TwoWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Spacing="7">
+                  <TextBlock Classes="label" Text="RAM (MB)" />
+                  <NumericUpDown Classes="field" Minimum="512" Maximum="32768" Increment="512"
+                                 Value="{Binding NewServerRamMb, Mode=TwoWay}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Spacing="7">
+                  <TextBlock Classes="label" Text="PORT" />
+                  <NumericUpDown Classes="field" Minimum="1" Maximum="65535" Increment="1"
+                                 Value="{Binding NewServerPort, Mode=TwoWay}" />
+                </StackPanel>
+              </Grid>
+
+              <StackPanel Spacing="7">
+                <TextBlock Classes="label" Text="MESSAGE OF THE DAY" />
+                <TextBox Classes="field" Text="{Binding NewServerMotd, Mode=TwoWay}" />
+              </StackPanel>
+
+              <CheckBox Content="Online mode (require genuine Minecraft accounts)"
+                        IsChecked="{Binding NewServerOnlineMode, Mode=TwoWay}"
+                        Foreground="{DynamicResource TextMutedBrush}" />
+
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Button Classes="primary" Padding="20,11" Content="Create server"
+                        Command="{Binding ConfirmCreateCommand}" />
+                <Button Classes="ghost" Content="Cancel" Command="{Binding CancelCreateCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </ScrollViewer>
+
+      <Grid IsVisible="{Binding !IsCreating}" RowDefinitions="Auto,Auto,*,Auto" Margin="26,22,26,22">
+
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+          <StackPanel Grid.Column="0" Spacing="6">
+            <TextBlock Classes="title" Text="{Binding SelectedServer.Name, FallbackValue='Servers'}" />
+            <TextBlock Classes="subtitle" Text="{Binding StatusText}" TextWrapping="Wrap" />
+          </StackPanel>
+          <Button Grid.Column="1" Classes="ghost" VerticalAlignment="Top"
+                  IsVisible="{Binding HasSelection}"
+                  Command="{Binding TogglePropertiesCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="9">
+              <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconSettings}" />
+              <TextBlock Text="server.properties" FontSize="12.5" />
+            </StackPanel>
+          </Button>
+        </Grid>
+
+        <Border Grid.Row="1" Classes="card" Margin="0,0,0,14" IsVisible="{Binding HasSelection}">
+          <StackPanel Spacing="13">
+            <StackPanel Orientation="Horizontal" Spacing="9">
+              <Button Classes="primary" Padding="17,10"
+                      IsEnabled="{Binding CanStart}" Command="{Binding StartCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon solid" Width="14" Height="14"
+                        Fill="{DynamicResource AccentContrastBrush}"
+                        Data="{StaticResource IconPlay}" />
+                  <TextBlock Text="Start" />
+                </StackPanel>
+              </Button>
+              <Button Classes="ghost" IsEnabled="{Binding CanStop}" Command="{Binding StopCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconStop}" />
+                  <TextBlock Text="Stop" FontSize="12.5" />
+                </StackPanel>
+              </Button>
+              <Button Classes="ghost" IsEnabled="{Binding CanStop}" Command="{Binding RestartCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconRefresh}" />
+                  <TextBlock Text="Restart" FontSize="12.5" />
+                </StackPanel>
+              </Button>
+              <Button Classes="ghost" IsEnabled="{Binding !IsInstalled}" Command="{Binding InstallCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconDownload}" />
+                  <TextBlock Text="Install" FontSize="12.5" />
+                </StackPanel>
+              </Button>
+              <Button Classes="ghost" Command="{Binding OpenFolderCommand}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconFolder}" />
+                  <TextBlock Text="Folder" FontSize="12.5" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+
+            <ProgressBar Classes="slim" Value="{Binding Progress}" Maximum="100"
+                         IsVisible="{Binding IsBusy}" />
+
             <StackPanel Orientation="Horizontal" Spacing="9">
               <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconGlobe}" />
               <TextBlock Classes="subtitle" FontSize="12" VerticalAlignment="Center"
                          Text="{Binding SelectedAddress}" />
             </StackPanel>
-          </Grid>
-        </StackPanel>
-      </Border>
-
-      <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
-        <Panel Background="{DynamicResource BgBaseBrush}">
-          <ScrollViewer Padding="14">
-            <ItemsControl ItemsSource="{Binding Console}">
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="sys:String">
-                  <TextBlock Text="{Binding}" FontSize="11.5" FontFamily="Consolas,monospace"
-                             TextWrapping="Wrap"
-                             Foreground="{DynamicResource TextMutedBrush}" />
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-          </ScrollViewer>
-          <TextBlock Text="Console output appears here" Classes="subtitle"
-                     HorizontalAlignment="Center" VerticalAlignment="Center"
-                     IsVisible="{Binding !IsRunning}" />
-        </Panel>
-      </Border>
-
-      <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
-        <TextBox Grid.Column="0" Classes="field" Margin="0,0,9,0"
-                 PlaceholderText="Type a server command"
-                 IsEnabled="{Binding IsRunning}"
-                 Text="{Binding CommandText, Mode=TwoWay}" />
-        <Button Grid.Column="1" Classes="ghost" IsEnabled="{Binding IsRunning}"
-                Command="{Binding SendCommandCommand}">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconChevronRight}" />
-            <TextBlock Text="Send" FontSize="12.5" />
           </StackPanel>
-        </Button>
-      </Grid>
+        </Border>
 
-    </Grid>
+        <ScrollViewer Grid.Row="2" IsVisible="{Binding ShowProperties}">
+          <ItemsControl ItemsSource="{Binding PropertyGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:ServerPropertyGroupViewModel">
+                <StackPanel Spacing="10" Margin="0,0,0,20">
+                  <TextBlock Classes="label" Text="{Binding Name}" />
+                  <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <UniformGrid Columns="3" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ServerPropertyViewModel">
+                        <Border Classes="card" Padding="0" Margin="0,0,10,10" ClipToBounds="True">
+                          <StackPanel>
+                            <Grid ColumnDefinitions="*,Auto" Margin="14,11,12,10">
+                              <TextBlock Grid.Column="0" Text="{Binding Label}"
+                                         FontSize="12.5" FontWeight="SemiBold"
+                                         VerticalAlignment="Center" TextWrapping="Wrap"
+                                         Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                              <ToggleSwitch Grid.Column="1" IsVisible="{Binding IsToggle}"
+                                            OnContent="" OffContent=""
+                                            IsChecked="{Binding BoolValue, Mode=TwoWay}" />
+
+                              <NumericUpDown Grid.Column="1" IsVisible="{Binding IsNumber}"
+                                             Width="118" Increment="1"
+                                             Minimum="{Binding Minimum}" Maximum="{Binding Maximum}"
+                                             Value="{Binding NumberValue, Mode=TwoWay}" />
+
+                              <ComboBox Grid.Column="1" IsVisible="{Binding IsChoice}"
+                                        Width="150" Classes="field"
+                                        ItemsSource="{Binding Options}"
+                                        SelectedItem="{Binding Value, Mode=TwoWay}" />
+                            </Grid>
+
+                            <TextBox Classes="field" Margin="14,0,14,11"
+                                     IsVisible="{Binding IsText}"
+                                     Text="{Binding Value, Mode=TwoWay}" />
+
+                            <Border Background="{DynamicResource BgBaseBrush}" Padding="14,6">
+                              <TextBlock Text="{Binding RawLine}" FontSize="10.5"
+                                         FontFamily="Consolas,monospace"
+                                         TextTrimming="CharacterEllipsis"
+                                         Foreground="{DynamicResource TextFaintBrush}" />
+                            </Border>
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True"
+                IsVisible="{Binding !ShowProperties}">
+          <Panel Background="{DynamicResource BgBaseBrush}">
+            <ScrollViewer Padding="14">
+              <ItemsControl ItemsSource="{Binding Console}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="sys:String">
+                    <TextBlock Text="{Binding}" FontSize="11.5" FontFamily="Consolas,monospace"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextMutedBrush}" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </ScrollViewer>
+            <TextBlock Text="Console output appears here" Classes="subtitle"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       IsVisible="{Binding !IsRunning}" />
+          </Panel>
+        </Border>
+
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Margin="0,12,0,0"
+              IsVisible="{Binding !ShowProperties}">
+          <TextBox Grid.Column="0" Classes="field" Margin="0,0,9,0"
+                   PlaceholderText="Type a server command"
+                   IsEnabled="{Binding IsRunning}"
+                   Text="{Binding CommandText, Mode=TwoWay}" />
+          <Button Grid.Column="1" Classes="ghost" IsEnabled="{Binding IsRunning}"
+                  Command="{Binding SendCommandCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconChevronRight}" />
+              <TextBlock Text="Send" FontSize="12.5" />
+            </StackPanel>
+          </Button>
+        </Grid>
+
+      </Grid>
+    </Panel>
   </Grid>
 </UserControl>
