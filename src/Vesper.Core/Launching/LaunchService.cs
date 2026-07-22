@@ -12,7 +12,13 @@ public sealed class LaunchService
 {
     private readonly VesperPaths _paths;
 
-    public LaunchService(VesperPaths paths) => _paths = paths;
+    public LaunchService(VesperPaths paths)
+    {
+        _paths = paths;
+        _controls = new ControlsSync(paths);
+    }
+
+    private readonly ControlsSync _controls;
 
     public MinecraftLauncher CreateLauncher(Profile profile) =>
         new(new VesperMinecraftPath(_paths, profile.Id));
@@ -48,10 +54,25 @@ public sealed class LaunchService
 
         progress?.Report(tracker.Snapshot(LaunchPhase.Building));
 
+        var optionsFile = _controls.OptionsFileFor(profile.Id);
+        _controls.ApplyTo(optionsFile);
+
         var process = await launcher.BuildProcessAsync(
             profile.EffectiveVersionId,
             BuildOption(profile, session),
             cancellationToken);
+
+        process.EnableRaisingEvents = true;
+        process.Exited += (_, _) =>
+        {
+            try
+            {
+                _controls.CaptureFrom(optionsFile);
+            }
+            catch (IOException)
+            {
+            }
+        };
 
         process.Start();
         progress?.Report(tracker.Snapshot(LaunchPhase.Started));

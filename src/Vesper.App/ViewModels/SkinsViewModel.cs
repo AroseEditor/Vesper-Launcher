@@ -13,6 +13,7 @@ public partial class SkinsViewModel : ObservableObject
     private readonly AccountManager _accounts;
     private readonly SkinStore _store;
     private readonly Stack<uint[]> _undo = new();
+    private readonly SkinFetcher _fetcher = new();
 
     [ObservableProperty]
     private Account? _selectedAccount;
@@ -40,6 +41,12 @@ public partial class SkinsViewModel : ObservableObject
 
     [ObservableProperty]
     private string _statusText = "Pick an account to edit its skin";
+
+    [ObservableProperty]
+    private bool _isFetching;
+
+    [ObservableProperty]
+    private string _skinSource = "default";
 
     public SkinsViewModel(VesperPaths paths, AccountManager accounts)
     {
@@ -251,13 +258,74 @@ public partial class SkinsViewModel : ObservableObject
         Slim = value.SkinModel == SkinModel.Slim;
 
         var stored = _store.ReadSkin(value.Id);
-        Pixels = stored is not null
-            ? SkinImage.Decode(stored) ?? SkinStore.CreateDefaultSkin(Slim)
-            : SkinStore.CreateDefaultSkin(Slim);
 
-        StatusText = "Editing skin for " + value.Username;
+        if (stored is not null)
+        {
+            Pixels = SkinImage.Decode(stored) ?? SkinStore.CreateDefaultSkin(Slim);
+            SkinSource = "your saved skin";
+            StatusText = "Editing the skin you saved for " + value.Username;
+        }
+        else
+        {
+            Pixels = SkinStore.CreateDefaultSkin(Slim);
+            SkinSource = "default";
+            StatusText = "Looking up the skin equipped on " + value.Username;
+            _ = FetchCurrentAsync(value);
+        }
+
         OnPropertyChanged(nameof(HasSkin));
         OnPropertyChanged(nameof(CanUndo));
+    }
+
+    [RelayCommand]
+    private Task LoadCurrentSkin() => FetchCurrentAsync(SelectedAccount);
+
+    private async Task FetchCurrentAsync(Account? account)
+    {
+        if (account is null || IsFetching)
+            return;
+
+        IsFetching = true;
+
+        try
+        {
+            RemoteSkin? remote = null;
+
+            if (account.Kind == AccountKind.Microsoft && !string.IsNullOrEmpty(account.AccessToken))
+                remote = await _fetcher.FetchForMicrosoftAsync(account.AccessToken);
+
+            remote ??= await _fetcher.FetchByUsernameAsync(account.Username);
+
+            if (remote is null)
+            {
+                SkinSource = "default";
+                StatusText = "No Minecraft account named " + account.Username +
+                             " has a skin, so the default is shown.";
+                return;
+            }
+
+            var decoded = SkinImage.Decode(remote.Png);
+
+            if (decoded is null)
+            {
+                StatusText = "That skin came back in a format Vesper could not read";
+                return;
+            }
+
+            PushUndo();
+            Pixels = decoded;
+            Slim = remote.Slim;
+            SkinSource = remote.Source;
+            StatusText = "Loaded the skin currently equipped on " + account.Username;
+        }
+        catch (Exception e)
+        {
+            StatusText = "Could not fetch the skin: " + e.Message;
+        }
+        finally
+        {
+            IsFetching = false;
+        }
     }
 
     partial void OnPixelsChanged(uint[]? value) => OnPropertyChanged(nameof(HasSkin));

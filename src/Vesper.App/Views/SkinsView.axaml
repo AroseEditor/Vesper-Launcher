@@ -14,6 +14,9 @@
       <StackPanel Grid.Row="0" Spacing="6" Margin="0,0,0,14">
         <TextBlock Classes="title" Text="Skins" />
         <TextBlock Classes="subtitle" Text="{Binding StatusText}" TextWrapping="Wrap" />
+        <TextBlock Classes="subtitle" FontSize="11.5"
+                   Foreground="{DynamicResource AccentBrush}"
+                   Text="{Binding SkinSource, StringFormat='Showing: {0}'}" />
       </StackPanel>
 
       <Border Grid.Row="1" Classes="card" Padding="0" ClipToBounds="True">
@@ -124,6 +127,15 @@
 
           <StackPanel Spacing="8">
             <TextBlock Classes="label" Text="SKIN" />
+            <Button Classes="ghost" HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    IsEnabled="{Binding !IsFetching}"
+                    Command="{Binding LoadCurrentSkinCommand}">
+              <StackPanel Orientation="Horizontal" Spacing="9">
+                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconDownload}" />
+                <TextBlock Text="Load my current skin" FontSize="12.5" />
+              </StackPanel>
+            </Button>
             <Button Classes="ghost" HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center" Click="OnUpload">
               <StackPanel Orientation="Horizontal" Spacing="9">

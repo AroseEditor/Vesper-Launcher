@@ -151,7 +151,7 @@ jobs:
         if: steps.exists.outputs.found == 'true'
         continue-on-error: true
         working-directory: mod
-        run: gradle build --no-daemon --stacktrace
+        run: gradle build -Penabled_platforms=fabric --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
         if: steps.build.outcome == 'success'
