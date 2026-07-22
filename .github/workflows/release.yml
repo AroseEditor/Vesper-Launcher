@@ -124,6 +124,7 @@ jobs:
   mod:
     name: Vesper mod
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -141,16 +142,22 @@ jobs:
           distribution: temurin
           java-version: '21'
 
-      - name: Build mod
+      - uses: gradle/actions/setup-gradle@v4
         if: steps.exists.outputs.found == 'true'
+
+      - name: Build mod
+        id: build
+        if: steps.exists.outputs.found == 'true'
+        continue-on-error: true
         working-directory: mod
-        run: ./gradlew build --no-daemon
+        run: gradle build --no-daemon --stacktrace
 
       - uses: actions/upload-artifact@v4
-        if: steps.exists.outputs.found == 'true'
+        if: steps.build.outcome == 'success'
         with:
           name: mod
           path: mod/*/build/libs/*.jar
+          if-no-files-found: ignore
 
   release:
     name: Draft release

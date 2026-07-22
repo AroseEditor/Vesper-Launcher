@@ -125,6 +125,28 @@ dotnet publish src/Vesper.App -c Release -r win-x64 \
 
 Swap `win-x64` for `osx-arm64`, `osx-x64`, or `linux-x64` as needed.
 
+### Building the mod
+
+The mod is a separate Gradle project under `mod/`. It needs **JDK 21** and **Gradle 8.10 or newer**.
+No Gradle wrapper is committed, so either use a system Gradle:
+
+```bash
+cd mod
+gradle build
+```
+
+or generate a wrapper once and use that afterwards:
+
+```bash
+cd mod
+gradle wrapper
+./gradlew build
+```
+
+The first build downloads and decompiles Minecraft through Architectury Loom, so expect it to take
+several minutes. **This build is not yet verified** - see the roadmap. CI attempts it on release but
+is configured not to block a launcher release if it fails.
+
 ### Regenerating the icon
 
 ```bash
