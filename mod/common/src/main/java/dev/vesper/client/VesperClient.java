@@ -28,6 +28,7 @@ public final class VesperClient {
         KeyMappingRegistry.register(zoomKey);
 
         ClientTickEvent.CLIENT_POST.register(VesperClient::onClientTick);
+        VesperHud.init();
     }
 
     public static KeyMapping menuKey() {

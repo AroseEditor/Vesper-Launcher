@@ -12,6 +12,9 @@
   "license": "LicenseRef-Vesper",
   "icon": "assets/vesper/icon.png",
   "environment": "client",
+  "mixins": [
+    "vesper-common.mixins.json"
+  ],
   "entrypoints": {
     "client": ["dev.vesper.fabric.VesperFabric"]
   },
