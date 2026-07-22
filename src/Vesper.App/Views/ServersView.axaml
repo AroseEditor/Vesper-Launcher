@@ -209,9 +209,21 @@
 
             <StackPanel Orientation="Horizontal" Spacing="9">
               <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconGlobe}" />
-              <TextBlock Classes="subtitle" FontSize="12" VerticalAlignment="Center"
-                         Text="{Binding SelectedAddress}" />
+              <SelectableTextBlock Classes="subtitle" FontSize="12" VerticalAlignment="Center"
+                                   Text="{Binding SelectedAddress}" />
             </StackPanel>
+
+            <Border Background="{DynamicResource BgBaseBrush}" CornerRadius="10" Padding="13"
+                    BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1"
+                    IsVisible="{Binding HasForwardingProblem}">
+              <StackPanel Spacing="7">
+                <TextBlock Classes="label" Text="PORT FORWARDING DID NOT WORK"
+                           Foreground="{DynamicResource WarningBrush}" />
+                <SelectableTextBlock Text="{Binding ForwardingHelp}" FontSize="12"
+                                     TextWrapping="Wrap"
+                                     Foreground="{DynamicResource TextMutedBrush}" />
+              </StackPanel>
+            </Border>
           </StackPanel>
         </Border>
 

@@ -53,6 +53,12 @@ public partial class ServersViewModel : ObservableObject
     private string _publicAddress = string.Empty;
 
     [ObservableProperty]
+    private string _forwardingHelp = string.Empty;
+
+    [ObservableProperty]
+    private bool _hasForwardingProblem;
+
+    [ObservableProperty]
     private string _newServerMotd = "A Vesper server";
 
     [ObservableProperty]
@@ -285,6 +291,8 @@ public partial class ServersViewModel : ObservableObject
             var result = await _forwarding.OpenAsync(server.Port);
 
             StatusText = result.Message;
+            HasForwardingProblem = !result.Success;
+            ForwardingHelp = HelpFor(result, server.Port);
 
             if (result.Success)
             {
@@ -366,6 +374,42 @@ public partial class ServersViewModel : ObservableObject
         }
     }
 
+    public static string HelpFor(PortForwardResult result, int port)
+    {
+        var steps = result.Outcome switch
+        {
+            PortForwardOutcome.NoRouterFound => new[]
+            {
+                "Your router did not answer the request.",
+                "1. Open your router page, usually http://192.168.1.1 or http://192.168.0.1",
+                "2. Find UPnP, often under Advanced, NAT or Firewall, and turn it on",
+                "3. Save, reboot the router, then press Open port again",
+                "No UPnP option? Forward port " + port + " to this computer by hand, TCP and UDP.",
+            },
+
+            PortForwardOutcome.RouterRefused => new[]
+            {
+                "Your router rejected the request.",
+                "1. Something may already use port " + port + ". Try a different port.",
+                "2. Some routers only accept UPnP over a wired connection.",
+                "3. Restart the router to clear stale mappings, then try again.",
+                "Otherwise forward port " + port + " manually, TCP and UDP, to this computer.",
+            },
+
+            PortForwardOutcome.BehindCarrierNat => new[]
+            {
+                "Your provider puts you behind their own network, known as CGNAT.",
+                "No port forwarding can reach you on this connection, and no launcher can fix that.",
+                "1. Ask your provider for a public or static IP address, often a small fee",
+                "2. Use a tunnel such as playit.gg or ngrok",
+                "3. Play over LAN, or rent a hosted server",
+            },
+
+            _ => [],
+        };
+
+        return string.Join(Environment.NewLine, steps);
+    }
     private ServerProcess ProcessFor(ServerDefinition server)
     {
         if (_processes.TryGetValue(server.Id, out var existing))

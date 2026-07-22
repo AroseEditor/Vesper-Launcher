@@ -14,6 +14,7 @@ public sealed record BundleResult(
 public sealed class VesperProfileInstaller
 {
     public const string VesperJarName = "vesper.jar";
+    public const string ModsFolder = "mods";
 
     private readonly VesperPaths _paths;
     private readonly ModrinthApi _modrinth;
@@ -98,7 +99,7 @@ public sealed class VesperProfileInstaller
             }
         }
 
-        InstallVesperJar(directory, progress, failed);
+        InstallVesperJar(profile, directory, progress, failed);
 
         return new BundleResult(installed, skipped, failed);
     }
@@ -124,23 +125,25 @@ public sealed class VesperProfileInstaller
     }
 
     private void InstallVesperJar(
+        Profile profile,
         string modsDirectory,
         IProgress<string>? progress,
         List<string> failed)
     {
-        var source = FindBundledVesperJar();
+        var source = FindBundledVesperJar(profile.Loader);
 
         if (source is null)
         {
             failed.Add(
-                "The Vesper mod jar was not found next to the launcher. " +
-                "Build it with gradle in mod/ and place it in the launcher's mods folder.");
+                "The Vesper mod jar was not found next to the launcher. Build it with " +
+                "gradle in mod/ and put it in the launcher's mods folder.");
             return;
         }
 
         try
         {
             progress?.Report("Installing the Vesper mod");
+            RemoveExistingVesperJars(modsDirectory);
             File.Copy(source, Path.Combine(modsDirectory, VesperJarName), overwrite: true);
         }
         catch (IOException e)
@@ -149,32 +152,73 @@ public sealed class VesperProfileInstaller
         }
     }
 
-    public string? FindBundledVesperJar()
+    public static int RemoveExistingVesperJars(string modsDirectory)
     {
-        var candidates = new List<string>
-        {
-            Path.Combine(AppContext.BaseDirectory, "mods", VesperJarName),
-            Path.Combine(_paths.Root, "mods", VesperJarName),
-        };
+        if (!Directory.Exists(modsDirectory))
+            return 0;
 
-        foreach (var candidate in candidates)
-        {
-            if (File.Exists(candidate))
-                return candidate;
-        }
+        var removed = 0;
 
-        foreach (var directory in candidates.Select(Path.GetDirectoryName))
+        foreach (var file in Directory.EnumerateFiles(modsDirectory, "*.jar"))
         {
-            if (directory is null || !Directory.Exists(directory))
+            var name = Path.GetFileName(file);
+
+            if (!name.StartsWith("vesper", StringComparison.OrdinalIgnoreCase))
                 continue;
 
+            try
+            {
+                File.Delete(file);
+                removed++;
+            }
+            catch (IOException)
+            {
+            }
+        }
+
+        return removed;
+    }
+
+    public static string PlatformJarName(LoaderKind loader) =>
+        loader == LoaderKind.NeoForge ? "vesper-neoforge.jar" : "vesper-fabric.jar";
+
+    public IReadOnlyList<string> BundleDirectories() =>
+    [
+        Path.Combine(AppContext.BaseDirectory, ModsFolder),
+        Path.Combine(_paths.Root, ModsFolder),
+    ];
+
+    public string? FindBundledVesperJar(LoaderKind loader)
+    {
+        var platform = PlatformJarName(loader);
+        var token = loader == LoaderKind.NeoForge ? "neoforge" : "fabric";
+
+        foreach (var directory in BundleDirectories())
+        {
+            if (!Directory.Exists(directory))
+                continue;
+
+            var exact = Path.Combine(directory, platform);
+
+            if (File.Exists(exact))
+                return exact;
+
             var match = Directory
-                .EnumerateFiles(directory, "vesper-*.jar")
+                .EnumerateFiles(directory, "vesper*.jar")
+                .Where(f => Path.GetFileName(f).Contains(token, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(File.GetLastWriteTimeUtc)
                 .FirstOrDefault();
 
             if (match is not null)
                 return match;
+        }
+
+        foreach (var directory in BundleDirectories())
+        {
+            var fallback = Path.Combine(directory, VesperJarName);
+
+            if (File.Exists(fallback))
+                return fallback;
         }
 
         return null;

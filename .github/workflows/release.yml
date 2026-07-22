@@ -34,7 +34,7 @@ jobs:
 
   launcher:
     name: ${{ matrix.label }}
-    needs: version
+    needs: [version, mod]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -71,6 +71,18 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true \
             -p:Version=${{ needs.version.outputs.value }} \
             -o publish/${{ matrix.rid }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mod
+          path: modjars
+
+      - name: Bundle the Vesper mod beside the launcher
+        shell: bash
+        run: |
+          mkdir -p "publish/${{ matrix.rid }}/mods"
+          cp modjars/*.jar "publish/${{ matrix.rid }}/mods/"
+          ls -la "publish/${{ matrix.rid }}/mods"
 
       - name: Build Windows installer
         if: startsWith(matrix.rid, 'win')
@@ -153,12 +165,20 @@ jobs:
         working-directory: mod
         run: gradle build -Penabled_platforms=fabric,neoforge --no-daemon --stacktrace
 
+      - name: Stage mod jars
+        if: steps.exists.outputs.found == 'true'
+        run: |
+          mkdir -p mod-dist
+          cp mod/fabric/build/libs/*-fabric.jar mod-dist/vesper-fabric.jar
+          cp mod/neoforge/build/libs/*-neoforge.jar mod-dist/vesper-neoforge.jar
+          ls -la mod-dist
+
       - uses: actions/upload-artifact@v4
         if: steps.exists.outputs.found == 'true'
         with:
           name: mod
-          path: mod/*/build/libs/*.jar
-          if-no-files-found: ignore
+          path: mod-dist/*.jar
+          if-no-files-found: error
 
   release:
     name: Draft release
