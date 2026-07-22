@@ -2,7 +2,7 @@ pluginManagement {
     repositories {
         maven { url = "https://maven.fabricmc.net/" }
         maven { url = "https://maven.architectury.dev/" }
-        maven { url = "https://files.minecraftforge.net/maven/" }
+        maven { url = "https://maven.minecraftforge.net/" }
         gradlePluginPortal()
     }
 }
@@ -10,5 +10,12 @@ pluginManagement {
 rootProject.name = "vesper"
 
 include("common")
-include("fabric")
-include("forge")
+
+def platforms = providers.gradleProperty("enabled_platforms").getOrElse("fabric,forge")
+
+platforms.split(",").each { platform ->
+    def name = platform.trim()
+    if (!name.isEmpty()) {
+        include(name)
+    }
+}
