@@ -16,15 +16,21 @@ public final class VesperMod {
     private static MotionBlur motionBlur = new MotionBlur();
     private static SkinResolver skinResolver;
     private static Path configPath;
+    private static Path gameDirectory;
 
     private VesperMod() {
     }
 
     public static void init(Path gameDirectory) {
+        VesperMod.gameDirectory = gameDirectory;
         configPath = gameDirectory.resolve("config").resolve(MOD_ID + ".json");
         config = VesperConfig.load(configPath);
         motionBlur = new MotionBlur();
         skinResolver = new SkinResolver(gameDirectory.resolve(MOD_ID).resolve("skins"));
+    }
+
+    public static Path gameDirectory() {
+        return gameDirectory;
     }
 
     public static VesperConfig config() {

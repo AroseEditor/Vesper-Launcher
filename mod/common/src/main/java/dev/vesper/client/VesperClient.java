@@ -66,6 +66,10 @@ public final class VesperClient {
     }
 
     private static void onClientTick(Minecraft client) {
+        if (!dev.vesper.skins.LocalSkins.isLoaded() && VesperMod.gameDirectory() != null) {
+            dev.vesper.skins.LocalSkins.load(VesperMod.gameDirectory());
+        }
+
         applyFullbright(client);
 
         if (menuKey == null) {

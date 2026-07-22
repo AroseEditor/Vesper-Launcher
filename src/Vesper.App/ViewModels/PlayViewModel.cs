@@ -326,7 +326,7 @@ public partial class PlayViewModel : ObservableObject
             });
 
             var session = AccountManager.CreateSession(account);
-            await _launcher.LaunchAsync(profile, session, progress, cancellationToken);
+            await _launcher.LaunchAsync(profile, session, progress, cancellationToken, account);
 
             _profiles.MarkPlayed(profile);
             _accounts.MarkUsed(account);

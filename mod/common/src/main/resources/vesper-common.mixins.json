@@ -4,6 +4,7 @@
   "package": "dev.vesper.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "AbstractClientPlayerMixin",
     "EntityRendererMixin",
     "GameRendererMixin",
     "ItemStackMixin",

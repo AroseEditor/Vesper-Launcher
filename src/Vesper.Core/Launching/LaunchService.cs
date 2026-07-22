@@ -4,6 +4,7 @@ using CmlLib.Core.Auth;
 using CmlLib.Core.Installers;
 using CmlLib.Core.ProcessBuilder;
 using Vesper.Core.Profiles;
+using Vesper.Core.Skins;
 using Vesper.Core.Storage;
 
 namespace Vesper.Core.Launching;
@@ -16,9 +17,11 @@ public sealed class LaunchService
     {
         _paths = paths;
         _controls = new ControlsSync(paths);
+        _skins = new SkinSync(paths);
     }
 
     private readonly ControlsSync _controls;
+    private readonly SkinSync _skins;
 
     public MinecraftLauncher CreateLauncher(Profile profile) =>
         new(new VesperMinecraftPath(_paths, profile.Id));
@@ -36,10 +39,22 @@ public sealed class LaunchService
         Profile profile,
         MSession session,
         IProgress<LaunchProgress>? progress = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Accounts.Account? account = null)
     {
         _paths.EnsureCreated();
         Directory.CreateDirectory(_paths.ProfileGameDir(profile.Id));
+
+        if (account is not null)
+        {
+            try
+            {
+                _skins.Apply(profile, account);
+            }
+            catch (IOException)
+            {
+            }
+        }
 
         var launcher = CreateLauncher(profile);
         var tracker = new ProgressTracker(progress);
