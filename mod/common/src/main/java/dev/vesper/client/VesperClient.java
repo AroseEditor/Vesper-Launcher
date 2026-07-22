@@ -1,11 +1,17 @@
 package dev.vesper.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
+import dev.architectury.hooks.client.screen.ScreenAccess;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import dev.vesper.VesperMod;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 
 public final class VesperClient {
 
@@ -31,6 +37,7 @@ public final class VesperClient {
         KeyMappingRegistry.register(zoomKey);
 
         ClientTickEvent.CLIENT_POST.register(VesperClient::onClientTick);
+        ClientGuiEvent.INIT_POST.register(VesperClient::onScreenInit);
         VesperHud.init();
     }
 
@@ -44,6 +51,22 @@ public final class VesperClient {
 
     public static boolean zoomHeld() {
         return zoomKey != null && zoomKey.isDown();
+    }
+
+    private static void onScreenInit(Screen screen, ScreenAccess access) {
+        if (!(screen instanceof PauseScreen)) {
+            return;
+        }
+
+        int width = 204;
+        int x = screen.width / 2 - width / 2;
+        int y = Math.min(screen.height / 4 + 144, screen.height - 28);
+
+        access.addRenderableWidget(Button.builder(
+                        Component.literal("Vesper Settings"),
+                        button -> Minecraft.getInstance().setScreen(new VesperScreen()))
+                .bounds(x, y, width, 20)
+                .build());
     }
 
     private static void applyFullbright(Minecraft client) {
