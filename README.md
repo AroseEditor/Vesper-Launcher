@@ -306,13 +306,6 @@ Any token you leave out falls back to the Mauve Black default, so a three-line t
 
 ---
 
-## Contributing
-
-Two conventions are enforced by CI and are not negotiable:
-
-- **No comments in source files.** Names and structure carry the meaning.
-- **No emoji** anywhere, including this README and commit messages.
-
 Run the checker before pushing:
 
 ```bash
