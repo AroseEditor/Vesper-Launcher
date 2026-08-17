@@ -7,6 +7,7 @@
   <StreamGeometry x:Key="IconUser">M0 0M24 24M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0</StreamGeometry>
   <StreamGeometry x:Key="IconPlus">M0 0M24 24M12 5v14 M5 12h14</StreamGeometry>
   <StreamGeometry x:Key="IconClose">M0 0M24 24M18 6 6 18 M6 6l12 12</StreamGeometry>
+  <StreamGeometry x:Key="IconAlert">M0 0M24 24M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01</StreamGeometry>
   <StreamGeometry x:Key="IconMinimize">M0 0M24 24M5 12h14</StreamGeometry>
   <StreamGeometry x:Key="IconMaximize">M0 0M24 24M4 4h16v16H4z</StreamGeometry>
   <StreamGeometry x:Key="IconChevronDown">M0 0M24 24M6 9l6 6 6-6</StreamGeometry>

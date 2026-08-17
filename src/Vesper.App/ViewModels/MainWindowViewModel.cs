@@ -53,6 +53,8 @@ public partial class MainWindowViewModel : ObservableObject
         foreach (var theme in _themeStore.LoadAll())
             Themes.Add(theme);
 
+        Errors = new ErrorsViewModel();
+
         SelectedTheme = Themes.FirstOrDefault();
         CurrentPage = Play;
 
@@ -72,6 +74,8 @@ public partial class MainWindowViewModel : ObservableObject
     public ServersViewModel Servers { get; }
 
     public SettingsViewModel Settings { get; }
+
+    public ErrorsViewModel Errors { get; }
 
     public ObservableCollection<VesperTheme> Themes { get; } = [];
 
