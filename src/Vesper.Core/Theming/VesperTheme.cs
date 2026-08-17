@@ -31,6 +31,8 @@ public sealed class VesperTheme
         "success",
         "warning",
         "danger",
+        "debug",
+        "trace",
     ];
 
     public static VesperTheme MauveBlack() => new()
@@ -56,6 +58,8 @@ public sealed class VesperTheme
             ["success"] = "#63D29B",
             ["warning"] = "#E0B252",
             ["danger"] = "#E5646B",
+            ["debug"] = "#5FB2D6",
+            ["trace"] = "#9B8CF0",
         },
     };
 
@@ -83,10 +87,41 @@ public sealed class VesperTheme
             ["success"] = "#63D29B",
             ["warning"] = "#E0B252",
             ["danger"] = "#E5646B",
+            ["debug"] = "#5FB2D6",
+            ["trace"] = "#9B8CF0",
         },
     };
 
-    public static IReadOnlyList<VesperTheme> BuiltIn() => [MauveBlack(), MidnightEmber()];
+    public static VesperTheme Basalt() => new()
+    {
+        Name = "Basalt",
+        IsBuiltIn = true,
+        LogoHue = -78,
+        Colors = new Dictionary<string, string>
+        {
+            ["bgBase"] = "#0C0E12",
+            ["bgElevated"] = "#15171D",
+            ["bgCard"] = "#1E2128",
+            ["bgHover"] = "#282C35",
+            ["borderSubtle"] = "#282C35",
+            ["borderStrong"] = "#3A3F4B",
+            ["accent"] = "#FF6A2B",
+            ["accentHover"] = "#FF8554",
+            ["accentDeep"] = "#D9480F",
+            ["accentBreath"] = "#FFB066",
+            ["accentContrast"] = "#12060F",
+            ["textPrimary"] = "#E8EAF0",
+            ["textMuted"] = "#9AA1B0",
+            ["textFaint"] = "#5E6472",
+            ["success"] = "#46C08A",
+            ["warning"] = "#E9B949",
+            ["danger"] = "#E5484D",
+            ["debug"] = "#5FB2D6",
+            ["trace"] = "#9B8CF0",
+        },
+    };
+
+    public static IReadOnlyList<VesperTheme> BuiltIn() => [MauveBlack(), MidnightEmber(), Basalt()];
 
     public string Resolve(string token)
     {
@@ -124,6 +159,8 @@ public sealed class VesperTheme
         "success" => "Success",
         "warning" => "Warning",
         "danger" => "Danger",
+        "debug" => "Debug",
+        "trace" => "Trace",
         _ => token,
     };
 
