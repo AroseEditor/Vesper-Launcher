@@ -272,7 +272,9 @@ public partial class PlayViewModel : ObservableObject
             return;
         }
 
-        if (SelectedVersion is null)
+        var launchingSaved = SelectedProfile is not null;
+
+        if (!launchingSaved && SelectedVersion is null)
         {
             StatusText = "Pick a version first";
             return;
@@ -285,24 +287,43 @@ public partial class PlayViewModel : ObservableObject
         {
             var profile = SelectedProfile ?? ResolveEphemeralProfile();
 
-            profile.MinecraftVersion = SelectedVersion.Id;
-            profile.Loader = EffectiveLoader;
-            profile.LoaderVersion = SelectedLoaderVersion?.Version;
-            profile.IsVesperProfile = Category == VersionCategory.Vesper;
+            if (!launchingSaved)
+            {
+                profile.MinecraftVersion = SelectedVersion!.Id;
+                profile.Loader = EffectiveLoader;
+                profile.LoaderVersion = SelectedLoaderVersion?.Version;
+                profile.IsVesperProfile = Category == VersionCategory.Vesper;
+            }
 
-            if (EffectiveLoader == LoaderKind.Vanilla)
+            if (profile.Loader == LoaderKind.Vanilla && !profile.IsVesperProfile)
             {
                 profile.LaunchVersionId = null;
             }
-            else
+            else if (string.IsNullOrEmpty(profile.LaunchVersionId))
             {
-                StatusText = $"Installing {EffectiveLoader.DisplayName()}";
-                var installer = _loaders.For(EffectiveLoader);
-                profile.LaunchVersionId = await installer.InstallAsync(
-                    SelectedVersion.Id,
-                    SelectedLoaderVersion?.Version
-                        ?? throw new InvalidOperationException("Select a loader version"),
-                    cancellationToken);
+                if (!_loaders.Supports(profile.Loader))
+                    throw new InvalidOperationException(
+                        profile.Loader.DisplayName() + " is not supported yet");
+
+                var loaderVersion = profile.LoaderVersion;
+
+                if (string.IsNullOrEmpty(loaderVersion))
+                {
+                    var builds = await _loaders.For(profile.Loader)
+                        .ListVersionsAsync(profile.MinecraftVersion, cancellationToken);
+
+                    loaderVersion = builds.FirstOrDefault(b => b.IsStable)?.Version
+                        ?? builds.FirstOrDefault()?.Version
+                        ?? throw new InvalidOperationException(
+                            "No " + profile.Loader.DisplayName() +
+                            " build is available for Minecraft " + profile.MinecraftVersion);
+
+                    profile.LoaderVersion = loaderVersion;
+                }
+
+                StatusText = $"Installing {profile.Loader.DisplayName()} {loaderVersion}";
+                profile.LaunchVersionId = await _loaders.For(profile.Loader)
+                    .InstallAsync(profile.MinecraftVersion, loaderVersion, cancellationToken);
             }
 
             if (Category == VersionCategory.Vesper)
@@ -340,6 +361,7 @@ public partial class PlayViewModel : ObservableObject
         catch (Exception e)
         {
             StatusText = "Launch failed: " + e.Message;
+            Vesper.Core.Diagnostics.ErrorService.Shared.Report("Launch failed", e);
         }
         finally
         {
