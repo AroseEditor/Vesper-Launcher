@@ -5,6 +5,9 @@
 
   <Application.Resources>
     <ResourceDictionary>
+      <FontFamily x:Key="FontSans">avares://VesperLauncher/Assets/Fonts/Geist.ttf#Geist</FontFamily>
+      <FontFamily x:Key="FontDisplay">avares://VesperLauncher/Assets/Fonts/SpaceGrotesk.ttf#Space Grotesk</FontFamily>
+      <FontFamily x:Key="FontPixel">avares://VesperLauncher/Assets/Fonts/PixelifySans.ttf#Pixelify Sans</FontFamily>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://VesperLauncher/Assets/Icons.axaml" />
       </ResourceDictionary.MergedDictionaries>
