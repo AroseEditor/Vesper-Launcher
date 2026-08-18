@@ -21,15 +21,7 @@
             BorderBrush="{DynamicResource BorderSubtleBrush}"
             BorderThickness="0,0,0,1"
             PointerPressed="OnTitleBarPressed">
-      <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-
-        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="11"
-                    Margin="15,0,0,0" VerticalAlignment="Center">
-          <Image Source="{DynamicResource VesperLogo}" Width="24" Height="24" />
-          <TextBlock Text="Vesper Launcher" FontWeight="SemiBold" FontSize="13.5"
-                     Foreground="{DynamicResource TextPrimaryBrush}"
-                     VerticalAlignment="Center" />
-        </StackPanel>
+      <Grid ColumnDefinitions="*,Auto,Auto">
 
         <Button Grid.Column="2" Name="AccountButton" Classes="chrome"
                 Width="NaN" Padding="9,0" Margin="0,6,10,6"

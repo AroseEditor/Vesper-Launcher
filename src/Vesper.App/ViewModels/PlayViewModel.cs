@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Vesper.Core.Accounts;
@@ -369,35 +369,20 @@ public partial class PlayViewModel : ObservableObject
             Category == VersionCategory.Vesper);
     }
 
+    public bool HasNoProfiles => Profiles.Count == 0;
+
     private void RefreshProfiles()
     {
         Profiles.Clear();
         var all = _profiles.LoadAll();
-        if (all.Count == 0)
-        {
-            try
-            {
-                _profiles.Create("Vanilla 1.21.1", "1.21.1", LoaderKind.Vanilla);
-                _profiles.Create("Fabric Performance 1.21", "1.21", LoaderKind.Fabric, isVesperProfile: true);
-                _profiles.Create("Trails & Tales 1.20.4", "1.20.4", LoaderKind.Fabric);
-                _profiles.Create("Wild Update 1.19.4", "1.19.4", LoaderKind.Fabric);
-                _profiles.Create("Caves & Cliffs 1.18.2", "1.18.2", LoaderKind.Forge);
-                _profiles.Create("Nether Update 1.16.5", "1.16.5", LoaderKind.Forge);
-                _profiles.Create("Modded 1.12.2", "1.12.2", LoaderKind.Forge);
-                _profiles.Create("PvP Classic 1.8.9", "1.8.9", LoaderKind.Vanilla);
-                _profiles.Create("Release 1.8.2", "1.8.2", LoaderKind.Vanilla);
-                all = _profiles.LoadAll();
-            }
-            catch (Exception)
-            {
-            }
-        }
 
         foreach (var profile in all)
             Profiles.Add(profile);
 
         if (SelectedProfile is null || !Profiles.Any(p => p.Id == SelectedProfile.Id))
             SelectedProfile = Profiles.FirstOrDefault();
+
+        OnPropertyChanged(nameof(HasNoProfiles));
     }
 
     private void RebuildVersionDropdown()

@@ -158,6 +158,28 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+        <!-- Empty State when 0 instances exist -->
+        <Border Classes="settingCard riseIn" Padding="36,44" Margin="0,20,0,0" HorizontalAlignment="Center"
+                IsVisible="{Binding HasNoProfiles}">
+          <StackPanel Spacing="14" HorizontalAlignment="Center">
+            <Path Data="{StaticResource IconBox}" Width="44" Height="44"
+                  Stroke="{DynamicResource AccentBrush}" HorizontalAlignment="Center" Opacity="0.8"/>
+            <TextBlock Text="No Instances Created Yet" FontSize="18" FontWeight="Bold"
+                       FontFamily="{StaticResource FontDisplay}" HorizontalAlignment="Center"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Text="Create your first custom Minecraft instance by clicking '+ New Instance'."
+                       FontSize="12.5" Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Center"/>
+            <Button Classes="primary" Padding="20,10" CornerRadius="11" HorizontalAlignment="Center"
+                    Command="{Binding BeginCreateProfileCommand}" Margin="0,8,0,0">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconPlus}"
+                      Stroke="{DynamicResource AccentContrastBrush}"/>
+                <TextBlock Text="+ New Instance" VerticalAlignment="Center" FontWeight="Bold" FontSize="12.5"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </Border>
+
       </StackPanel>
     </ScrollViewer>
 
