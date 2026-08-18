@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Vesper.Core.Accounts;
@@ -103,7 +103,7 @@ public partial class PlayViewModel : ObservableObject
 
     public bool IsVesper => Category == VersionCategory.Vesper;
 
-    public bool HasSelection => SelectedVersion is not null;
+    public bool HasSelection => SelectedProfile is not null || SelectedVersion is not null;
 
     public LoaderKind EffectiveLoader => SelectedLoader ?? LoaderKind.Vanilla;
 
@@ -121,12 +121,14 @@ public partial class PlayViewModel : ObservableObject
             ? "Pick a build"
             : "No builds for this version";
 
-    public string SelectedSummary => SelectedVersion is null
-        ? "Pick a version"
-        : EffectiveLoader == LoaderKind.Vanilla
-            ? "Vanilla " + SelectedVersion.Id
-            : $"{(Category == VersionCategory.Vesper ? "Vesper" : "Vanilla")} + " +
-              $"{EffectiveLoader.DisplayName()} {SelectedVersion.Id}";
+    public string SelectedSummary => SelectedProfile is not null
+        ? SelectedProfile.Name
+        : SelectedVersion is null
+            ? "Pick a version"
+            : EffectiveLoader == LoaderKind.Vanilla
+                ? "Vanilla " + SelectedVersion.Id
+                : $"{(Category == VersionCategory.Vesper ? "Vesper" : "Vanilla")} + " +
+                  $"{EffectiveLoader.DisplayName()} {SelectedVersion.Id}";
 
     public string CategoryBlurb => Category == VersionCategory.Vesper
         ? "Vesper profiles bundle our client mod and a curated performance pack. Fabric or NeoForge, 1.21 and newer."
@@ -140,9 +142,10 @@ public partial class PlayViewModel : ObservableObject
         try
         {
             _allVersions = await _catalog.GetAllAsync(cancellationToken);
+            RebuildVersionDropdown();
             RebuildCards();
             StatusText = _allVersions.Count > 0
-                ? $"{_allVersions.Count} versions available"
+                ? $"{_allVersions.Count} versions available (from 1.21 down to 1.8.2 & older)"
                 : "Could not reach Mojang. Check your connection.";
         }
         catch (Exception e)
@@ -169,38 +172,20 @@ public partial class PlayViewModel : ObservableObject
     private void SelectProfile(Profile profile)
     {
         SelectedProfile = profile;
-
         Category = profile.IsVesperProfile ? VersionCategory.Vesper : VersionCategory.Vanilla;
 
-        var card = Cards.FirstOrDefault(c =>
-            c.Group.Versions.Any(v => v.Id == profile.MinecraftVersion));
-
-        if (card is not null)
-        {
-            SelectedCard = card;
-            SelectedVersion = GroupVersions.FirstOrDefault(v => v.Id == profile.MinecraftVersion);
-        }
+        var version = GroupVersions.FirstOrDefault(v => v.Id == profile.MinecraftVersion);
+        if (version is not null)
+            SelectedVersion = version;
 
         SelectedLoader = profile.Loader;
-        StatusText = "Loaded profile " + profile.Name;
+        StatusText = "Selected " + profile.Name;
     }
 
     [RelayCommand]
     private void OpenMods()
     {
-        if (SelectedVersion is null)
-        {
-            StatusText = "Pick a version first";
-            return;
-        }
-
-        if (EffectiveLoader == LoaderKind.Vanilla)
-        {
-            StatusText = "Pick a mod loader before adding mods";
-            return;
-        }
-
-        var profile = ResolveEphemeralProfile();
+        var profile = SelectedProfile ?? ResolveEphemeralProfile();
         RefreshProfiles();
         Mods.Open(profile);
     }
@@ -210,6 +195,8 @@ public partial class PlayViewModel : ObservableObject
     {
         IsCreatingProfile = true;
         NewProfileName = string.Empty;
+        if (SelectedVersion is null && GroupVersions.Count > 0)
+            SelectedVersion = GroupVersions.FirstOrDefault();
     }
 
     [RelayCommand]
@@ -222,19 +209,15 @@ public partial class PlayViewModel : ObservableObject
     [RelayCommand]
     private void ConfirmCreateProfile()
     {
-        if (SelectedVersion is null)
-        {
-            StatusText = "Pick a version first";
-            return;
-        }
+        var mcVersion = SelectedVersion?.Id ?? "1.21.1";
 
         var name = string.IsNullOrWhiteSpace(NewProfileName)
-            ? SelectedSummary
+            ? $"{EffectiveLoader.DisplayName()} {mcVersion}"
             : NewProfileName.Trim();
 
         var profile = _profiles.Create(
             name,
-            SelectedVersion.Id,
+            mcVersion,
             EffectiveLoader,
             SelectedLoaderVersion?.Version,
             Category == VersionCategory.Vesper);
@@ -243,7 +226,7 @@ public partial class PlayViewModel : ObservableObject
         SelectedProfile = Profiles.FirstOrDefault(p => p.Id == profile.Id);
         IsCreatingProfile = false;
         NewProfileName = string.Empty;
-        StatusText = "Created profile " + profile.Name;
+        StatusText = "Created instance " + profile.Name;
     }
 
     [RelayCommand]
@@ -268,7 +251,7 @@ public partial class PlayViewModel : ObservableObject
 
         if (account is null)
         {
-            StatusText = "Add an account first";
+            StatusText = "Add an account first to play";
             return;
         }
 
@@ -276,7 +259,7 @@ public partial class PlayViewModel : ObservableObject
 
         if (!launchingSaved && SelectedVersion is null)
         {
-            StatusText = "Pick a version first";
+            StatusText = "Select an instance or version first";
             return;
         }
 
@@ -372,14 +355,15 @@ public partial class PlayViewModel : ObservableObject
 
     private Profile ResolveEphemeralProfile()
     {
+        var version = SelectedVersion?.Id ?? "1.21.1";
         var existing = _profiles.LoadAll().FirstOrDefault(p =>
-            p.MinecraftVersion == SelectedVersion!.Id &&
+            p.MinecraftVersion == version &&
             p.Loader == EffectiveLoader &&
             p.IsVesperProfile == (Category == VersionCategory.Vesper));
 
         return existing ?? _profiles.Create(
             SelectedSummary,
-            SelectedVersion!.Id,
+            version,
             EffectiveLoader,
             SelectedLoaderVersion?.Version,
             Category == VersionCategory.Vesper);
@@ -388,8 +372,47 @@ public partial class PlayViewModel : ObservableObject
     private void RefreshProfiles()
     {
         Profiles.Clear();
-        foreach (var profile in _profiles.LoadAll())
+        var all = _profiles.LoadAll();
+        if (all.Count == 0)
+        {
+            try
+            {
+                _profiles.Create("Vanilla 1.21.1", "1.21.1", LoaderKind.Vanilla);
+                _profiles.Create("Fabric Performance 1.21", "1.21", LoaderKind.Fabric, isVesperProfile: true);
+                _profiles.Create("Trails & Tales 1.20.4", "1.20.4", LoaderKind.Fabric);
+                _profiles.Create("Wild Update 1.19.4", "1.19.4", LoaderKind.Fabric);
+                _profiles.Create("Caves & Cliffs 1.18.2", "1.18.2", LoaderKind.Forge);
+                _profiles.Create("Nether Update 1.16.5", "1.16.5", LoaderKind.Forge);
+                _profiles.Create("Modded 1.12.2", "1.12.2", LoaderKind.Forge);
+                _profiles.Create("PvP Classic 1.8.9", "1.8.9", LoaderKind.Vanilla);
+                _profiles.Create("Release 1.8.2", "1.8.2", LoaderKind.Vanilla);
+                all = _profiles.LoadAll();
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        foreach (var profile in all)
             Profiles.Add(profile);
+
+        if (SelectedProfile is null || !Profiles.Any(p => p.Id == SelectedProfile.Id))
+            SelectedProfile = Profiles.FirstOrDefault();
+    }
+
+    private void RebuildVersionDropdown()
+    {
+        GroupVersions.Clear();
+        var releases = _allVersions.Where(v => v.IsRelease).ToList();
+
+        foreach (var release in releases)
+            GroupVersions.Add(release);
+
+        OnPropertyChanged(nameof(HasGroupVersions));
+        OnPropertyChanged(nameof(VersionPlaceholder));
+
+        if (SelectedVersion is null && GroupVersions.Count > 0)
+            SelectedVersion = GroupVersions.FirstOrDefault();
     }
 
     private void RebuildCards()
@@ -513,19 +536,12 @@ public partial class PlayViewModel : ObservableObject
 
     partial void OnSelectedCardChanged(VersionCardViewModel? value)
     {
-        GroupVersions.Clear();
-
         if (value is null)
-        {
-            SelectedVersion = null;
             return;
-        }
 
-        foreach (var version in value.Group.Versions)
-            GroupVersions.Add(version);
-
-        SelectedVersion = GroupVersions.FirstOrDefault();
-        OnPropertyChanged(nameof(HasGroupVersions));
+        var v = GroupVersions.FirstOrDefault(ver => ver.Id == value.Group.Newest.Id);
+        if (v is not null)
+            SelectedVersion = v;
     }
 
     partial void OnSelectedVersionChanged(MinecraftVersionInfo? value)

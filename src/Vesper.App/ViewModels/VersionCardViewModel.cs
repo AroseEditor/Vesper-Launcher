@@ -1,4 +1,4 @@
-using Avalonia.Media.Imaging;
+﻿using Avalonia.Media.Imaging;
 using Vesper.App.Controls;
 using Vesper.Core.Versions;
 
@@ -6,51 +6,51 @@ namespace Vesper.App.ViewModels;
 
 public sealed class VersionCardViewModel
 {
-    private static readonly (uint Top, uint Bottom)[] Palette =
-    [
-        (0xFFB57EDC, 0xFF3E2560),
-        (0xFFD14FE8, 0xFF4A1C63),
-        (0xFF9A5FC4, 0xFF2C1A45),
-        (0xFFC9A0DC, 0xFF5B3A7E),
-        (0xFF8E6BD6, 0xFF261A46),
-        (0xFFE06AD8, 0xFF54246B),
-    ];
-
-    private static readonly Dictionary<int, Bitmap> Cache = [];
-
     public VersionCardViewModel(VersionGroup group)
     {
         Group = group;
-
-        var index = Math.Abs(StableHash(group.Name)) % Palette.Length;
-
-        if (!Cache.TryGetValue(index, out var banner))
-        {
-            var (top, bottom) = Palette[index];
-            banner = BannerFactory.Create(top, bottom, index * 7919);
-            Cache[index] = banner;
-        }
-
-        Banner = banner;
+        UpdateName = GetUpdateName(group.Name);
+        Banner = BannerFactory.GetBannerForGroup(group.Name);
     }
 
     public VersionGroup Group { get; }
 
     public string Name => Group.Name;
 
-    public string Subtitle => Group.Subtitle;
+    public string Subtitle => string.IsNullOrEmpty(UpdateName) || UpdateName == Name
+        ? Group.Subtitle
+        : $"{UpdateName} · {Group.Subtitle}";
 
     public string Newest => Group.Newest.Id;
 
+    public string UpdateName { get; }
+
     public Bitmap Banner { get; }
 
-    private static int StableHash(string value)
+    public static string GetUpdateName(string groupName) => groupName switch
     {
-        var hash = 17;
-
-        foreach (var c in value)
-            hash = hash * 31 + c;
-
-        return hash;
-    }
+        "26.2" or "26.1" or "26.0" => "Winter Drop",
+        "1.21" => "Tricky Trials",
+        "1.20" => "Trails & Tales",
+        "1.19" => "The Wild Update",
+        "1.18" => "Caves & Cliffs II",
+        "1.17" => "Caves & Cliffs I",
+        "1.16" => "Nether Update",
+        "1.15" => "Buzzy Bees",
+        "1.14" => "Village & Pillage",
+        "1.13" => "Update Aquatic",
+        "1.12" => "World of Color",
+        "1.11" => "Exploration Update",
+        "1.10" => "Frostburn Update",
+        "1.9" => "Combat Update",
+        "1.8" => "Bountiful Update",
+        "1.7" => "Update That Changed The World",
+        "1.6" => "Horse Update",
+        "1.5" => "Redstone Update",
+        "1.4" => "Pretty Scary Update",
+        "1.3" or "1.2" or "1.1" or "1.0" => "Release Era",
+        "Snapshots" => "Snapshots",
+        "Beta and Alpha" => "Classic Era",
+        _ => "",
+    };
 }

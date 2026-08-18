@@ -3,7 +3,12 @@ namespace Vesper.Core.Storage;
 public sealed class VesperPaths
 {
     public const string PortableMarker = "portable.txt";
-    public const string DirectoryName = "VesperLauncher";
+
+    /// <summary>Root folder name under %LOCALAPPDATA%.</summary>
+    public const string DirectoryName = ".vesperlauncher";
+
+    /// <summary>Per-profile game directory name (replaces .minecraft).</summary>
+    public const string GameDirName = ".vesperlauncher";
 
     public VesperPaths(string root) => Root = Path.GetFullPath(root);
 
@@ -27,7 +32,11 @@ public sealed class VesperPaths
 
     public string ProfileFile(string id) => Path.Combine(ProfileDir(id), "profile.json");
 
-    public string ProfileGameDir(string id) => Path.Combine(ProfileDir(id), ".minecraft");
+    /// <summary>
+    /// Per-profile isolated game directory. Uses .vesperlauncher so game files
+    /// are never written into the user's real .minecraft folder.
+    /// </summary>
+    public string ProfileGameDir(string id) => Path.Combine(ProfileDir(id), GameDirName);
 
     public string ProfileModsDir(string id) => Path.Combine(ProfileGameDir(id), "mods");
 

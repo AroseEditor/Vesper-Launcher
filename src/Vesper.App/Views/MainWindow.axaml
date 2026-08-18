@@ -3,6 +3,7 @@
         xmlns:vm="using:Vesper.App.ViewModels"
         xmlns:views="using:Vesper.App.Views"
         xmlns:acc="using:Vesper.Core.Accounts"
+        xmlns:ctrl="using:Vesper.App.Controls"
         x:Class="Vesper.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Vesper Launcher"
@@ -148,16 +149,20 @@
               <ItemsControl ItemsSource="{Binding Accounts.Accounts}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="acc:Account">
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,2">
                       <Button Grid.Column="0" Classes="nav" Padding="8"
                               Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Accounts.SelectAccountCommand}"
                               CommandParameter="{Binding}">
                         <StackPanel Orientation="Horizontal" Spacing="10">
-                          <Border Width="28" Height="28" CornerRadius="8"
+                          <Border Width="30" Height="30" CornerRadius="9" ClipToBounds="True"
                                   Background="{DynamicResource AccentDeepBrush}">
-                            <TextBlock Text="{Binding Username[0]}" FontSize="12" FontWeight="Bold"
-                                       Foreground="{DynamicResource TextPrimaryBrush}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <Panel>
+                              <TextBlock Text="{Binding Username[0]}" FontSize="12" FontWeight="Bold"
+                                         Foreground="{DynamicResource TextPrimaryBrush}"
+                                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              <Image Source="{Binding Converter={x:Static ctrl:AccountAvatarConverter.Instance}}"
+                                     Width="30" Height="30" Stretch="UniformToFill" />
+                            </Panel>
                           </Border>
                           <StackPanel VerticalAlignment="Center">
                             <TextBlock Text="{Binding Username}" FontSize="12.5"
@@ -168,6 +173,11 @@
                         </StackPanel>
                       </Button>
                       <Button Grid.Column="1" Classes="chrome" Width="32" Height="32"
+                              ToolTip.Tip="Choose image / logo for account"
+                              Click="OnChangeAccountLogo" Tag="{Binding}">
+                        <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconImage}" />
+                      </Button>
+                      <Button Grid.Column="2" Classes="chrome" Width="32" Height="32"
                               Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Accounts.RemoveAccountCommand}"
                               CommandParameter="{Binding}">
                         <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconTrash}" />
@@ -251,11 +261,47 @@
 
       <Border Grid.Column="0" Background="{DynamicResource BgElevatedBrush}"
               BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,1,0">
-        <Grid RowDefinitions="*,Auto" Margin="12,14,12,12">
-          <StackPanel Grid.Row="0" Spacing="3">
+        <Grid RowDefinitions="Auto,*,Auto">
+
+          <!-- ── Brand header ──────────────────────── -->
+          <Border Grid.Row="0" Padding="18,20,18,18"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1">
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                <GradientStop Color="#241435" Offset="0"/>
+                <GradientStop Color="#14101E" Offset="1"/>
+              </LinearGradientBrush>
+            </Border.Background>
+            <Grid ColumnDefinitions="Auto,*">
+              <!-- Logo square -->
+              <Border Grid.Column="0" Width="42" Height="42" CornerRadius="13"
+                      VerticalAlignment="Center" Margin="0,0,13,0">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+                    <GradientStop Color="#CC55EE" Offset="0"/>
+                    <GradientStop Color="#8840BB" Offset="1"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <Image Source="{DynamicResource VesperLogo}" Width="22" Height="22"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <!-- Name + tagline -->
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                <TextBlock Text="Vesper" FontWeight="Bold" FontSize="17"
+                           FontFamily="{StaticResource FontDisplay}"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="LAUNCHER" FontSize="9" FontWeight="Bold"
+                           LetterSpacing="2.5"
+                           Foreground="{DynamicResource AccentBrush}"/>
+              </StackPanel>
+            </Grid>
+          </Border>
+
+          <!-- ── Nav items ─────────────────────────── -->
+          <StackPanel Grid.Row="1" Spacing="2" Margin="10,14,10,14">
 
             <Grid ColumnDefinitions="3,*">
-              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsPlayTab}" Margin="0,9" />
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsPlayTab}" Margin="0,10" />
               <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsPlayTab}"
                       Command="{Binding SelectTabCommand}" CommandParameter="Play">
                 <StackPanel Orientation="Horizontal" Spacing="13">
@@ -266,7 +312,7 @@
             </Grid>
 
             <Grid ColumnDefinitions="3,*">
-              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsSkinsTab}" Margin="0,9" />
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsSkinsTab}" Margin="0,10" />
               <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsSkinsTab}"
                       Command="{Binding SelectTabCommand}" CommandParameter="Skins">
                 <StackPanel Orientation="Horizontal" Spacing="13">
@@ -277,7 +323,7 @@
             </Grid>
 
             <Grid ColumnDefinitions="3,*">
-              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsServersTab}" Margin="0,9" />
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsServersTab}" Margin="0,10" />
               <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsServersTab}"
                       Command="{Binding SelectTabCommand}" CommandParameter="Servers">
                 <StackPanel Orientation="Horizontal" Spacing="13">
@@ -288,7 +334,7 @@
             </Grid>
 
             <Grid ColumnDefinitions="3,*">
-              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsSettingsTab}" Margin="0,9" />
+              <Border Grid.Column="0" Classes="navPip" Classes.on="{Binding IsSettingsTab}" Margin="0,10" />
               <Button Grid.Column="1" Classes="nav" Classes.active="{Binding IsSettingsTab}"
                       Command="{Binding SelectTabCommand}" CommandParameter="Settings">
                 <StackPanel Orientation="Horizontal" Spacing="13">
@@ -300,13 +346,18 @@
 
           </StackPanel>
 
-          <StackPanel Grid.Row="1" Spacing="3" Margin="6,0,0,2">
-            <TextBlock Text="{Binding StatusText}" FontSize="11" TextWrapping="Wrap"
-                       MaxLines="3" TextTrimming="CharacterEllipsis"
-                       Foreground="{DynamicResource TextMutedBrush}" />
-            <TextBlock Text="{Binding Version, StringFormat='Vesper {0}'}" FontSize="10"
-                       Foreground="{DynamicResource TextFaintBrush}" />
-          </StackPanel>
+          <!-- ── Footer / status ───────────────────── -->
+          <Border Grid.Row="2" Padding="15,11,15,14"
+                  BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,1,0,0">
+            <StackPanel Spacing="3">
+              <TextBlock Text="{Binding StatusText}" FontSize="11" TextWrapping="Wrap"
+                         MaxLines="3" TextTrimming="CharacterEllipsis"
+                         Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding Version, StringFormat='Vesper {0}'}" FontSize="10"
+                         Foreground="{DynamicResource TextFaintBrush}" />
+            </StackPanel>
+          </Border>
+
         </Grid>
       </Border>
 

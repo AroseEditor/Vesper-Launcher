@@ -44,21 +44,38 @@ public sealed class ForgeInstaller : ILoaderInstaller
         string minecraftVersion,
         CancellationToken cancellationToken = default)
     {
-        try
+        // Retry once on transient network errors before giving up.
+        for (var attempt = 0; attempt < 2; attempt++)
         {
-            var versions = await Create().GetForgeVersions(minecraftVersion);
+            try
+            {
+                var versions = await Create().GetForgeVersions(minecraftVersion);
 
-            return versions
-                .Select(v => new LoaderVersion(
-                    v.ForgeVersionName,
-                    v.IsRecommendedVersion || v.IsLatestVersion))
-                .ToList();
+                return versions
+                    .Select(v => new LoaderVersion(
+                        v.ForgeVersionName,
+                        v.IsRecommendedVersion || v.IsLatestVersion))
+                    .ToList();
+            }
+            catch (Exception e) when (e is not LoaderNotSupportedException)
+            {
+                if (attempt == 0 && !cancellationToken.IsCancellationRequested)
+                {
+                    // Wait 2 seconds then retry once for transient failures.
+                    await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                    continue;
+                }
+
+                throw new LoaderNotSupportedException(
+                    Kind,
+                    $"no builds published for Minecraft {minecraftVersion}: {e.Message}",
+                    e);
+            }
         }
-        catch (Exception e) when (e is not LoaderNotSupportedException)
-        {
-            throw new LoaderNotSupportedException(
-                Kind, $"no builds published for Minecraft {minecraftVersion}");
-        }
+
+        // Unreachable, but satisfies compiler.
+        throw new LoaderNotSupportedException(Kind,
+            $"no builds published for Minecraft {minecraftVersion}");
     }
 
     public async Task<string> InstallAsync(
@@ -89,6 +106,8 @@ public sealed class NeoForgeInstaller : ILoaderInstaller
 
     public LoaderKind Kind => LoaderKind.NeoForge;
 
+    // Note: CmlLib's NeoForgeInstaller does not expose an HttpClient overload,
+    // so _http cannot be forwarded here. Kept for future compatibility.
     private CmlNeoForge.NeoForgeInstaller Create() =>
         new(new MinecraftLauncher(SharedMinecraftPath.For(_paths)));
 
@@ -96,21 +115,36 @@ public sealed class NeoForgeInstaller : ILoaderInstaller
         string minecraftVersion,
         CancellationToken cancellationToken = default)
     {
-        try
+        // Retry once on transient network errors before giving up.
+        for (var attempt = 0; attempt < 2; attempt++)
         {
-            var versions = await Create().GetForgeVersions(minecraftVersion);
+            try
+            {
+                var versions = await Create().GetForgeVersions(minecraftVersion);
 
-            return versions
-                .Select(v => new LoaderVersion(
-                    v.VersionName,
-                    FabricLikeInstaller.IsStableVersionString(v.VersionName)))
-                .ToList();
+                return versions
+                    .Select(v => new LoaderVersion(
+                        v.VersionName,
+                        FabricLikeInstaller.IsStableVersionString(v.VersionName)))
+                    .ToList();
+            }
+            catch (Exception e) when (e is not LoaderNotSupportedException)
+            {
+                if (attempt == 0 && !cancellationToken.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                    continue;
+                }
+
+                throw new LoaderNotSupportedException(
+                    Kind,
+                    $"no builds published for Minecraft {minecraftVersion}: {e.Message}",
+                    e);
+            }
         }
-        catch (Exception e) when (e is not LoaderNotSupportedException)
-        {
-            throw new LoaderNotSupportedException(
-                Kind, $"no builds published for Minecraft {minecraftVersion}");
-        }
+
+        throw new LoaderNotSupportedException(Kind,
+            $"no builds published for Minecraft {minecraftVersion}");
     }
 
     public async Task<string> InstallAsync(
@@ -119,3 +153,4 @@ public sealed class NeoForgeInstaller : ILoaderInstaller
         CancellationToken cancellationToken = default) =>
         await Create().Install(minecraftVersion, loaderVersion);
 }
+

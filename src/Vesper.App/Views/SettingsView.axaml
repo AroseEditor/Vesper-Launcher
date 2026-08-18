@@ -142,8 +142,8 @@
           <TextBlock Classes="label" Text="ABOUT" />
           <TextBlock FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
                      Text="{Binding Version, StringFormat='Vesper Launcher {0}'}" />
-          <TextBlock FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
-                     Text="{Binding Author, StringFormat='Built by {0}'}" />
+          <TextBlock FontSize="12.5" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                     Text="{Binding Author, StringFormat='Made by {0}'}" />
           <TextBlock Classes="subtitle" FontSize="11" TextWrapping="Wrap"
                      Text="Not affiliated with Mojang Studios or Microsoft. Minecraft is a trademark of Mojang Studios." />
         </StackPanel>

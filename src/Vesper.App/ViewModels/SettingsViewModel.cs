@@ -67,7 +67,7 @@ public partial class SettingsViewModel : ObservableObject
 
     public string Version => VesperInfo.Version;
 
-    public string Author => "ayush.ue5";
+    public string Author => "Zayrix and Ayush.ue5";
 
     public int TotalRamMb => 16384;
 

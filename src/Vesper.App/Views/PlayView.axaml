@@ -1,219 +1,225 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Vesper.App.ViewModels"
-             xmlns:ver="using:Vesper.Core.Versions"
              xmlns:prof="using:Vesper.Core.Profiles"
+             xmlns:ver="using:Vesper.Core.Versions"
              xmlns:ld="using:Vesper.Core.Loaders"
+             xmlns:ctrl="using:Vesper.App.Controls"
              x:Class="Vesper.App.Views.PlayView"
              x:DataType="vm:PlayViewModel">
 
-  <Grid ColumnDefinitions="*,340">
+  <Grid RowDefinitions="Auto,*,Auto">
 
-    <Grid Grid.Column="0" RowDefinitions="Auto,*" Margin="26,22,20,22">
+    <!-- ── Top Toolbar ────────────────────────────────────────── -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="22,18,22,14">
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12">
+        <TextBlock Text="INSTANCES" FontSize="18" FontWeight="Bold"
+                   FontFamily="{StaticResource FontDisplay}"
+                   Foreground="{DynamicResource TextPrimaryBrush}"
+                   VerticalAlignment="Center"/>
+        <Border Background="{DynamicResource BgCardBrush}" CornerRadius="8" Padding="9,4"
+                VerticalAlignment="Center" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+          <TextBlock Text="{Binding Profiles.Count, StringFormat='{}{0} profiles'}"
+                     FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}"/>
+        </Border>
+      </StackPanel>
 
-      <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,18">
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+        <!-- New Instance button -->
+        <Button Classes="primary" Padding="18,9" CornerRadius="11"
+                Command="{Binding BeginCreateProfileCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconPlus}"
+                  Stroke="{DynamicResource AccentContrastBrush}"/>
+            <TextBlock Text="New Instance" VerticalAlignment="Center" FontWeight="Bold" FontSize="12.5"/>
+          </StackPanel>
+        </Button>
+      </StackPanel>
+    </Grid>
 
-        <Border Grid.Column="0" Background="{DynamicResource BgCardBrush}"
-                BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1"
-                CornerRadius="11" Padding="4">
-          <StackPanel Orientation="Horizontal" Spacing="4">
-            <Button Classes="chip" Classes.on="{Binding IsVanilla}"
-                    Command="{Binding SetCategoryCommand}" CommandParameter="Vanilla">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
-                <TextBlock Text="Vanilla" VerticalAlignment="Center" />
+    <!-- ── Main Grid: Basalt Instance Cards ──────────────────── -->
+    <ScrollViewer Grid.Row="1" Margin="22,0,22,0">
+      <StackPanel Spacing="16">
+
+        <!-- New Profile Creator Modal (Inline Card) -->
+        <Border Classes="settingCard riseIn" Margin="0,0,0,10" Padding="18"
+                IsVisible="{Binding IsCreatingProfile}">
+          <StackPanel Spacing="12">
+            <TextBlock Classes="label" Text="CREATE NEW INSTANCE" FontSize="12"/>
+            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+              <StackPanel Grid.Column="0" Spacing="6">
+                <TextBlock Text="INSTANCE NAME" Classes="label"/>
+                <TextBox Classes="field" PlaceholderText="e.g. My Modpack"
+                         Text="{Binding NewProfileName, Mode=TwoWay}"/>
               </StackPanel>
-            </Button>
-            <Button Classes="chip" Classes.on="{Binding IsVesper}"
-                    Command="{Binding SetCategoryCommand}" CommandParameter="Vesper">
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPalette}" />
-                <TextBlock Text="Vesper" VerticalAlignment="Center" />
+
+              <StackPanel Grid.Column="1" Spacing="6">
+                <TextBlock Text="MINECRAFT VERSION" Classes="label"/>
+                <ComboBox Classes="field"
+                          ItemsSource="{Binding GroupVersions}"
+                          PlaceholderText="{Binding VersionPlaceholder}"
+                          SelectedItem="{Binding SelectedVersion, Mode=TwoWay}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="ver:MinecraftVersionInfo">
+                      <TextBlock Text="{Binding Id}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
               </StackPanel>
-            </Button>
+
+              <StackPanel Grid.Column="2" Spacing="6">
+                <TextBlock Text="MOD LOADER" Classes="label"/>
+                <ComboBox Classes="field"
+                          ItemsSource="{Binding AvailableLoaders}"
+                          SelectedItem="{Binding SelectedLoader, Mode=TwoWay}"/>
+              </StackPanel>
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,6,0,0">
+              <Button Classes="ghost" Padding="16,8" Content="Cancel"
+                      Command="{Binding CancelCreateProfileCommand}"/>
+              <Button Classes="primary" Padding="20,8" Content="Create Instance"
+                      Command="{Binding ConfirmCreateProfileCommand}"/>
+            </StackPanel>
           </StackPanel>
         </Border>
 
-        <TextBox Grid.Column="1" Classes="field" Margin="14,0"
-                 PlaceholderText="Search versions"
-                 Text="{Binding SearchText, Mode=TwoWay}" />
+        <!-- Instances Grid -->
+        <ItemsControl ItemsSource="{Binding Profiles}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <UniformGrid Columns="3"/>
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="prof:Profile">
+              <Button Classes="versionCard riseIn" Margin="0,0,14,14" Height="185"
+                      HorizontalAlignment="Stretch"
+                      Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).SelectProfileCommand}"
+                      CommandParameter="{Binding}">
+                <Border CornerRadius="16" ClipToBounds="True"
+                        BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
+                  <Panel>
+                    <!-- Background Cover Artwork -->
+                    <Image Source="{Binding MinecraftVersion, Converter={x:Static ctrl:ProfileBannerConverter.Instance}}"
+                           Stretch="UniformToFill" Opacity="0.9" />
 
-        <Button Grid.Column="2" Classes="ghost" Command="{Binding BeginCreateProfileCommand}">
-          <StackPanel Orientation="Horizontal" Spacing="9">
-            <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconPlus}" />
-            <TextBlock Text="New Profile" VerticalAlignment="Center" FontSize="12.5" />
-          </StackPanel>
-        </Button>
-      </Grid>
+                    <!-- Dark Gradient Overlay -->
+                    <Border>
+                      <Border.Background>
+                        <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
+                          <GradientStop Color="#55000000" Offset="0"/>
+                          <GradientStop Color="#11000000" Offset="0.3"/>
+                          <GradientStop Color="#77000000" Offset="0.6"/>
+                          <GradientStop Color="#F00A0A0E" Offset="1"/>
+                        </LinearGradientBrush>
+                      </Border.Background>
+                    </Border>
 
-      <Panel Grid.Row="1">
-
-        <TextBlock Text="Loading versions" Classes="subtitle"
-                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                   IsVisible="{Binding IsLoadingVersions}" />
-
-        <ScrollViewer IsVisible="{Binding !IsLoadingVersions}">
-          <ItemsControl ItemsSource="{Binding Cards}" Margin="0,0,8,0">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <UniformGrid Columns="3" />
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate x:DataType="vm:VersionCardViewModel">
-                <Button Classes="versionCard riseIn" Height="152" Margin="0,0,14,14"
-                        HorizontalAlignment="Stretch"
-                        Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).SelectCardCommand}"
-                        CommandParameter="{Binding}">
-                  <Border CornerRadius="16" ClipToBounds="True">
-                    <Panel>
-                      <Image Source="{Binding Banner}" Stretch="UniformToFill" />
-                      <Border Background="#4D000000" />
-                      <Border Background="#59000000" CornerRadius="6" Padding="7,3"
-                              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,13,0,0">
-                        <TextBlock Classes="pixel" Text="{Binding Newest}" FontSize="11"
-                                   Foreground="#FFFFFFFF" />
+                    <!-- Top Badges -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="12,12,12,0" VerticalAlignment="Top">
+                      <!-- Version pill -->
+                      <Border Grid.Column="0" Background="#99000000" CornerRadius="7" Padding="8,4"
+                              HorizontalAlignment="Left">
+                        <TextBlock Text="{Binding MinecraftVersion}" FontSize="11" FontWeight="Bold"
+                                   Foreground="White"/>
                       </Border>
-                      <StackPanel VerticalAlignment="Bottom" Margin="17,0,17,15" Spacing="1">
-                        <TextBlock Text="{Binding Name}" FontSize="27" FontWeight="Bold"
+
+                      <!-- Loader pill -->
+                      <Border Grid.Column="1" Background="{DynamicResource AccentBrush}"
+                              CornerRadius="7" Padding="8,4">
+                        <TextBlock Text="{Binding ProfileLabel}" FontSize="10.5" FontWeight="Bold"
+                                   Foreground="{DynamicResource AccentContrastBrush}"/>
+                      </Border>
+                    </Grid>
+
+                    <!-- Bottom Details -->
+                    <Grid ColumnDefinitions="*,Auto" Margin="14,0,14,14" VerticalAlignment="Bottom">
+                      <StackPanel Grid.Column="0" Spacing="2">
+                        <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold"
                                    FontFamily="{StaticResource FontDisplay}"
-                                   Foreground="#FFFFFFFF" />
-                        <TextBlock Text="{Binding Subtitle}" FontSize="11.5"
-                                   Foreground="#CCFFFFFF" />
+                                   Foreground="White"/>
+                        <TextBlock Text="{Binding LastPlayedLabel}" FontSize="11"
+                                   Foreground="#B0FFFFFF"/>
                       </StackPanel>
-                    </Panel>
-                  </Border>
-                </Button>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </ScrollViewer>
-      </Panel>
-    </Grid>
 
-    <Border Grid.Column="1" Background="{DynamicResource BgElevatedBrush}"
-            BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1,0,0,0">
-      <Grid RowDefinitions="*,Auto" Margin="20,22,20,20">
-
-        <ScrollViewer Grid.Row="0">
-          <StackPanel Spacing="16">
-
-            <TextBlock Classes="label" Text="SELECTED VERSION" />
-
-            <TextBlock Text="{Binding SelectedSummary}" Classes="title" FontSize="21"
-                       TextWrapping="Wrap" />
-
-            <TextBlock Text="{Binding CategoryBlurb}" Classes="subtitle" TextWrapping="Wrap" />
-
-            <StackPanel Spacing="7">
-              <TextBlock Classes="label" Text="MINECRAFT VERSION" />
-              <ComboBox Classes="field" ItemsSource="{Binding GroupVersions}"
-                        PlaceholderText="{Binding VersionPlaceholder}"
-                        SelectedItem="{Binding SelectedVersion, Mode=TwoWay}">
-                <ComboBox.ItemTemplate>
-                  <DataTemplate x:DataType="ver:MinecraftVersionInfo">
-                    <TextBlock Text="{Binding Id}" />
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
-            </StackPanel>
-
-            <StackPanel Spacing="7">
-              <TextBlock Classes="label" Text="LOADER" />
-              <ComboBox Classes="field" ItemsSource="{Binding AvailableLoaders}"
-                        SelectedItem="{Binding SelectedLoader, Mode=TwoWay}" />
-            </StackPanel>
-
-            <StackPanel Spacing="7" IsVisible="{Binding NeedsLoaderVersion}">
-              <TextBlock Classes="label" Text="LOADER VERSION" />
-              <ComboBox Classes="field" ItemsSource="{Binding LoaderVersions}"
-                        PlaceholderText="{Binding LoaderVersionPlaceholder}"
-                        SelectedItem="{Binding SelectedLoaderVersion, Mode=TwoWay}">
-                <ComboBox.ItemTemplate>
-                  <DataTemplate x:DataType="ld:LoaderVersion">
-                    <TextBlock Text="{Binding Label}" />
-                  </DataTemplate>
-                </ComboBox.ItemTemplate>
-              </ComboBox>
-              <TextBlock Text="Loading builds" Classes="subtitle" FontSize="11"
-                         IsVisible="{Binding IsLoadingLoaders}" />
-            </StackPanel>
-
-            <Button Classes="ghost" HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    IsVisible="{Binding NeedsLoaderVersion}"
-                    Command="{Binding OpenModsCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="9">
-                <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
-                <TextBlock Text="Manage mods" VerticalAlignment="Center" FontSize="12.5" />
-              </StackPanel>
-            </Button>
-
-            <StackPanel Spacing="9" IsVisible="{Binding IsCreatingProfile}">
-              <TextBlock Classes="label" Text="PROFILE NAME" />
-              <TextBox Classes="field" PlaceholderText="Horror Mod"
-                       Text="{Binding NewProfileName, Mode=TwoWay}" />
-              <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button Classes="primary" Padding="16,8" Content="Save"
-                        Command="{Binding ConfirmCreateProfileCommand}" />
-                <Button Classes="ghost" Content="Cancel"
-                        Command="{Binding CancelCreateProfileCommand}" />
-              </StackPanel>
-            </StackPanel>
-
-            <StackPanel Spacing="7">
-              <TextBlock Classes="label" Text="PROFILES" />
-              <ItemsControl ItemsSource="{Binding Profiles}">
-                <ItemsControl.ItemTemplate>
-                  <DataTemplate x:DataType="prof:Profile">
-                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
-                      <Button Grid.Column="0" Classes="nav" Padding="10,8"
-                              Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).SelectProfileCommand}"
-                              CommandParameter="{Binding}">
-                        <StackPanel Orientation="Horizontal" Spacing="11">
-                          <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}" />
-                          <StackPanel VerticalAlignment="Center">
-                            <TextBlock Text="{Binding Name}" FontSize="12.5"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                            <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}">
-                              <Run Text="{Binding MinecraftVersion}" />
-                              <Run Text="  " />
-                              <Run Text="{Binding ProfileLabel}" />
-                            </TextBlock>
-                          </StackPanel>
-                        </StackPanel>
-                      </Button>
+                      <!-- Delete button -->
                       <Button Grid.Column="1" Classes="chrome" Width="30" Height="30"
                               Command="{Binding $parent[UserControl].((vm:PlayViewModel)DataContext).DeleteProfileCommand}"
                               CommandParameter="{Binding}">
-                        <Path Classes="icon" Width="13" Height="13" Data="{StaticResource IconTrash}" />
+                        <Path Classes="icon" Width="13" Height="13" Data="{StaticResource IconTrash}"/>
                       </Button>
                     </Grid>
-                  </DataTemplate>
-                </ItemsControl.ItemTemplate>
-              </ItemsControl>
+
+                  </Panel>
+                </Border>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ── Bottom Hero Launch Bar (Basalt Style) ─────────────── -->
+    <Border Grid.Row="2" Background="{DynamicResource BgElevatedBrush}"
+            BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,1,0,0"
+            Padding="22,14,22,16">
+      <Grid ColumnDefinitions="*,Auto,Auto">
+
+        <!-- Selected Profile Summary -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14" VerticalAlignment="Center">
+          <Border Width="48" Height="48" CornerRadius="12" ClipToBounds="True">
+            <Image Source="{Binding SelectedProfile.MinecraftVersion, Converter={x:Static ctrl:ProfileBannerConverter.Instance}}"
+                   Stretch="UniformToFill"/>
+          </Border>
+          <StackPanel VerticalAlignment="Center" Spacing="2">
+            <TextBlock Text="{Binding SelectedProfile.Name, FallbackValue='Select an instance'}"
+                       FontSize="16" FontWeight="Bold"
+                       FontFamily="{StaticResource FontDisplay}"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="{Binding SelectedProfile.ProfileLabel, FallbackValue='No instance selected'}"
+                         FontSize="11.5" Foreground="{DynamicResource AccentBrush}" FontWeight="SemiBold"/>
+              <TextBlock Text="·" FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}"/>
+              <TextBlock Text="{Binding SelectedProfile.MinecraftVersion}"
+                         FontSize="11.5" Foreground="{DynamicResource TextMutedBrush}"/>
             </StackPanel>
-
           </StackPanel>
-        </ScrollViewer>
+        </StackPanel>
 
-        <StackPanel Grid.Row="1" Spacing="12" Margin="0,16,0,0">
+        <!-- Manage Mods Button -->
+        <Button Grid.Column="1" Classes="ghost" Margin="0,0,16,0" VerticalAlignment="Center"
+                Command="{Binding OpenModsCommand}">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Path Classes="icon" Width="15" Height="15" Data="{StaticResource IconBox}"/>
+            <TextBlock Text="Manage Mods" VerticalAlignment="Center" FontSize="12.5"/>
+          </StackPanel>
+        </Button>
+
+        <!-- Launch Button & Progress Bar -->
+        <StackPanel Grid.Column="2" Spacing="6" VerticalAlignment="Center" Width="200">
+          <TextBlock Text="{Binding StatusText}" FontSize="11" TextTrimming="CharacterEllipsis"
+                     Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right"
+                     IsVisible="{Binding IsBusy}"/>
           <ProgressBar Classes="slim" Value="{Binding Progress}" Maximum="100"
-                       IsVisible="{Binding IsBusy}" />
+                       IsIndeterminate="{Binding IsLoadingLoaders}"
+                       IsVisible="{Binding IsBusy}"/>
+
           <Panel>
             <Border Classes="glowPulse" CornerRadius="13" Margin="-6"
                     Background="{DynamicResource AccentBrush}"
-                    IsVisible="{Binding HasSelection}" />
+                    IsVisible="{Binding SelectedProfile, Converter={x:Static ObjectConverters.IsNotNull}}"/>
             <Button Classes="primary" HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Center"
-                    FontSize="15" Padding="0,16"
+                    FontSize="14.5" Padding="0,14" CornerRadius="12"
                     IsEnabled="{Binding !IsBusy}"
                     Command="{Binding LaunchCommand}">
-              <StackPanel Orientation="Horizontal" Spacing="11">
-                <Path Classes="icon solid" Width="17" Height="17"
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Path Classes="icon solid" Width="16" Height="16"
                       Fill="{DynamicResource AccentContrastBrush}"
-                      Data="{StaticResource IconPlay}" />
-                <TextBlock Text="LAUNCH GAME" VerticalAlignment="Center" />
+                      Data="{StaticResource IconPlay}"/>
+                <TextBlock Text="PLAY" VerticalAlignment="Center" FontWeight="Bold" LetterSpacing="1"/>
               </StackPanel>
             </Button>
           </Panel>
@@ -221,5 +227,6 @@
 
       </Grid>
     </Border>
+
   </Grid>
 </UserControl>

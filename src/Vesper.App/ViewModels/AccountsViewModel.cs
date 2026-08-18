@@ -1,5 +1,6 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -105,6 +106,7 @@ public partial class AccountsViewModel : ObservableObject
         }
 
         var account = _manager.AddLocal(username);
+        account.SkinModel = SkinModel.Slim; // Alex model default
         _manager.Select(account.Id);
         Refresh();
         CancelAddLocal();
@@ -213,6 +215,17 @@ public partial class AccountsViewModel : ObservableObject
         Refresh();
     }
 
+    public void SetCustomAvatar(Account account, byte[] imageBytes)
+    {
+        _skins.WriteSkin(account.Id, imageBytes);
+        account.HasCustomSkin = true;
+        _manager.Save();
+        _manager.Select(account.Id);
+        Refresh();
+        RefreshAvatar(account);
+        StatusMessage = "Updated avatar image for " + account.Username;
+    }
+
     private void Refresh()
     {
         Accounts.Clear();
@@ -250,12 +263,22 @@ public partial class AccountsViewModel : ObservableObject
         try
         {
             var stored = _skins.ReadSkin(account.Id);
-            var pixels = stored is not null
-                ? SkinImage.Decode(stored)
-                : SkinStore.CreateDefaultSkin(account.SkinModel == SkinModel.Slim);
+            if (stored is not null && stored.Length > 0)
+            {
+                var pixels = SkinImage.Decode(stored);
+                if (pixels is not null)
+                {
+                    SelectedAvatar = SkinImage.RenderHead(pixels);
+                    return;
+                }
 
-            if (pixels is not null)
-                SelectedAvatar = SkinImage.RenderHead(pixels);
+                using var ms = new MemoryStream(stored);
+                SelectedAvatar = new Bitmap(ms);
+                return;
+            }
+
+            var alexPixels = SkinStore.CreateDefaultSkin(slim: true);
+            SelectedAvatar = SkinImage.RenderHead(alexPixels);
         }
         catch (Exception)
         {

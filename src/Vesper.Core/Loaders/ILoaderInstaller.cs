@@ -26,5 +26,8 @@ public sealed class LoaderNotSupportedException : Exception
     public LoaderNotSupportedException(LoaderKind kind, string reason)
         : base($"{kind.DisplayName()}: {reason}") => Kind = kind;
 
+    public LoaderNotSupportedException(LoaderKind kind, string reason, Exception inner)
+        : base($"{kind.DisplayName()}: {reason}", inner) => Kind = kind;
+
     public LoaderKind Kind { get; }
 }

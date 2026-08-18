@@ -12,6 +12,7 @@
   <ItemGroup>
     <AvaloniaResource Include="../../brand/icon.png" Link="Assets/icon.png" />
     <AvaloniaResource Include="Assets/Fonts/*.ttf" />
+    <Content Include="Assets/Banners/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
