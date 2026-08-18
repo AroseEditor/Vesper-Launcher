@@ -3,10 +3,12 @@ name: Release
 on:
   push:
     tags: ['v*']
+    branches: [ zayrix-branch ]
   workflow_dispatch:
     inputs:
       version:
         description: Version to build, without the leading v
+        default: '1.0.0'
         required: true
 
 permissions:
