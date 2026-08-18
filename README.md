@@ -298,11 +298,11 @@ Any token you leave out falls back to the Mauve Black default, so a three-line t
 - [x] Mods manager with Modrinth and CurseForge browsing
 - [x] Skins page with a 3D model editor
 - [x] Servers tab with Paper install, live console and a full server.properties editor
-- [ ] playit.gg tunnel management
+- [x] playit.gg tunnel management
 - [x] Vesper mod builds for Fabric and NeoForge with an in-game menu, 37 modules and a live HUD
 - [x] Motion blur render pass with Lunar and Badlion presets
-- [ ] Remaining module behaviours (entity culling, particle limit, glint, fullbright)
-- [ ] Vesper Loader one-click profiles
+- [x] Remaining module behaviours (entity culling, particle limit, glint, fullbright)
+- [x] Vesper Loader one-click profiles
 
 ---
 
