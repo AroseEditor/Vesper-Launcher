@@ -69,8 +69,14 @@
                     <Panel>
                       <Image Source="{Binding Banner}" Stretch="UniformToFill" />
                       <Border Background="#4D000000" />
+                      <Border Background="#59000000" CornerRadius="6" Padding="7,3"
+                              HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,13,0,0">
+                        <TextBlock Classes="pixel" Text="{Binding Newest}" FontSize="11"
+                                   Foreground="#FFFFFFFF" />
+                      </Border>
                       <StackPanel VerticalAlignment="Bottom" Margin="17,0,17,15" Spacing="1">
                         <TextBlock Text="{Binding Name}" FontSize="27" FontWeight="Bold"
+                                   FontFamily="{StaticResource FontDisplay}"
                                    Foreground="#FFFFFFFF" />
                         <TextBlock Text="{Binding Subtitle}" FontSize="11.5"
                                    Foreground="#CCFFFFFF" />
