@@ -320,7 +320,7 @@ python scripts/check_conventions.py
 
 You may use, study, modify and redistribute Vesper, including commercially. What you may not do is
 strip the attribution, rebrand it, and pass it off as your own work. Forks must keep the licence and
-the credit to **ayush.ue5**, must say clearly that they are modified, and must use their own name and
+the credit to **ayush.ue5** and **Zayrix** , must say clearly that they are modified, and must use their own name and
 logo rather than Vesper's.
 
 *Vesper Launcher is not affiliated with, endorsed by, or associated with Mojang Studios or Microsoft.
