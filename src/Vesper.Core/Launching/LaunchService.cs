@@ -72,14 +72,80 @@ public sealed class LaunchService
         var optionsFile = _controls.OptionsFileFor(profile.Id);
         _controls.ApplyTo(optionsFile);
 
+        var useTuning = profile.UseOptimisedJvmArguments;
+        var launched = await StartWithCaptureAsync(
+            launcher, profile, session, useTuning, optionsFile, cancellationToken);
+
+        if (useTuning && await ExitedEarlyAsync(launched.Process))
+        {
+            Diagnostics.ErrorService.Shared.Report(
+                "Minecraft closed immediately; retrying without the performance JVM flags",
+                launched.Tail.ToString(),
+                Diagnostics.ErrorSeverity.Warning);
+
+            launched = await StartWithCaptureAsync(
+                launcher, profile, session, false, optionsFile, cancellationToken);
+        }
+
+        progress?.Report(tracker.Snapshot(LaunchPhase.Started));
+        return launched.Process;
+    }
+
+    private async Task<LaunchedProcess> StartWithCaptureAsync(
+        MinecraftLauncher launcher,
+        Profile profile,
+        MSession session,
+        bool useTuning,
+        string optionsFile,
+        CancellationToken cancellationToken)
+    {
         var process = await launcher.BuildProcessAsync(
             profile.EffectiveVersionId,
-            BuildOption(profile, session),
+            BuildOption(profile, session, useTuning),
             cancellationToken);
 
+        var logPath = Path.Combine(
+            _paths.LogsDir,
+            $"launch-{profile.Id}-{DateTime.Now:yyyyMMdd-HHmmss}.log");
+
+        Directory.CreateDirectory(_paths.LogsDir);
+
+        var tail = new System.Text.StringBuilder();
+        var writer = new StreamWriter(logPath, append: false) { AutoFlush = true };
+
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.UseShellExecute = false;
         process.EnableRaisingEvents = true;
+
+        void OnData(object? _, DataReceivedEventArgs e)
+        {
+            if (e.Data is null)
+                return;
+
+            lock (tail)
+            {
+                writer.WriteLine(e.Data);
+                tail.AppendLine(e.Data);
+
+                if (tail.Length > 8000)
+                    tail.Remove(0, tail.Length - 6000);
+            }
+        }
+
+        process.OutputDataReceived += OnData;
+        process.ErrorDataReceived += OnData;
+
         process.Exited += (_, _) =>
         {
+            try
+            {
+                writer.Dispose();
+            }
+            catch (Exception)
+            {
+            }
+
             try
             {
                 _controls.CaptureFrom(optionsFile);
@@ -87,14 +153,42 @@ public sealed class LaunchService
             catch (IOException)
             {
             }
+
+            if (process.ExitCode != 0)
+            {
+                Diagnostics.ErrorService.Shared.Report(
+                    $"Minecraft exited with code {process.ExitCode}",
+                    tail.ToString() + Environment.NewLine + "Full log: " + logPath);
+            }
         };
 
         process.Start();
-        progress?.Report(tracker.Snapshot(LaunchPhase.Started));
-        return process;
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        return new LaunchedProcess(process, tail, logPath);
     }
 
-    private static MLaunchOption BuildOption(Profile profile, MSession session)
+    private static async Task<bool> ExitedEarlyAsync(Process process)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            await process.WaitForExitAsync(cts.Token);
+            return process.ExitCode != 0;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+    }
+
+    private sealed record LaunchedProcess(
+        Process Process,
+        System.Text.StringBuilder Tail,
+        string LogPath);
+
+    private static MLaunchOption BuildOption(Profile profile, MSession session, bool useTuning)
     {
         var option = new MLaunchOption
         {
@@ -111,7 +205,7 @@ public sealed class LaunchService
         if (!string.IsNullOrWhiteSpace(profile.JavaPath))
             option.JavaPath = profile.JavaPath;
 
-        var extra = profile.UseOptimisedJvmArguments
+        var extra = useTuning
             ? JvmTuning.Merge(
                 JvmTuning.Recommended(profile.MaximumRamMb), profile.ExtraJvmArguments)
             : profile.ExtraJvmArguments;
