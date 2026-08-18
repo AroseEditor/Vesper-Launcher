@@ -28,6 +28,10 @@ public sealed class ServerDefinition
 
     public bool ForwardPort { get; set; } = true;
 
+    public string TunnelMode { get; set; } = "tunnel";
+
+    public string? TunnelAddress { get; set; }
+
     public string? PublicAddress { get; set; }
 
     public string? JavaPath { get; set; }
@@ -37,9 +41,18 @@ public sealed class ServerDefinition
     public DateTimeOffset? LastStartedAt { get; set; }
 
     [JsonIgnore]
-    public string Address => string.IsNullOrWhiteSpace(PublicAddress)
-        ? $"localhost:{Port}"
-        : $"{PublicAddress}:{Port}";
+    public string Address
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(TunnelAddress))
+                return TunnelAddress;
+
+            return string.IsNullOrWhiteSpace(PublicAddress)
+                ? $"localhost:{Port}"
+                : $"{PublicAddress}:{Port}";
+        }
+    }
 
     [JsonIgnore]
     public string Summary => $"{Project} {MinecraftVersion} build {Build}";

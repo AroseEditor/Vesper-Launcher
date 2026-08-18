@@ -24,6 +24,9 @@ public partial class MainWindow : Window
         ErrorsViewModel.ClipboardWriter = text =>
             Clipboard?.SetTextAsync(text) ?? Task.CompletedTask;
 
+        ServersViewModel.ClipboardWriter = text =>
+            Clipboard?.SetTextAsync(text) ?? Task.CompletedTask;
+
         if (DataContext is MainWindowViewModel model)
             await model.InitializeAsync();
     }

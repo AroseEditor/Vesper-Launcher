@@ -207,11 +207,43 @@
             <ProgressBar Classes="slim" Value="{Binding Progress}" Maximum="100"
                          IsVisible="{Binding IsBusy}" />
 
-            <StackPanel Orientation="Horizontal" Spacing="9">
-              <Path Classes="icon" Width="14" Height="14" Data="{StaticResource IconGlobe}" />
-              <SelectableTextBlock Classes="subtitle" FontSize="12" VerticalAlignment="Center"
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <Path Grid.Column="0" Classes="icon" Width="14" Height="14"
+                    Data="{StaticResource IconGlobe}" VerticalAlignment="Center" />
+              <SelectableTextBlock Grid.Column="1" Classes="subtitle" FontSize="12"
+                                   VerticalAlignment="Center" Margin="9,0"
                                    Text="{Binding SelectedAddress}" />
-            </StackPanel>
+              <Button Grid.Column="2" Classes="ghost" Padding="10,6" FontSize="11" Content="Copy"
+                      Command="{Binding CopyAddressCommand}" />
+            </Grid>
+
+            <Border Background="{DynamicResource BgBaseBrush}" CornerRadius="10" Padding="13">
+              <StackPanel Spacing="9">
+                <TextBlock Classes="label" Text="SHARE OVER THE INTERNET" />
+                <TextBlock Classes="subtitle" FontSize="11.5" TextWrapping="Wrap"
+                           Text="A playit.gg tunnel shares your server with no router changes and without exposing your IP." />
+                <StackPanel Orientation="Horizontal" Spacing="9">
+                  <Button Classes="primary" Padding="15,9" Content="Start tunnel"
+                          IsEnabled="{Binding !IsTunnelStarting}"
+                          Command="{Binding StartTunnelCommand}" />
+                  <Button Classes="ghost" Padding="15,9" Content="Stop tunnel"
+                          Command="{Binding StopTunnelCommand}" />
+                  <Button Classes="ghost" Padding="15,9" Content="Open port (UPnP)"
+                          IsEnabled="{Binding !IsForwarding}"
+                          Command="{Binding OpenPortCommand}" />
+                </StackPanel>
+                <Border Background="{DynamicResource BgElevatedBrush}" CornerRadius="9" Padding="11"
+                        IsVisible="{Binding TunnelClaimUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="label" Text="AUTHORISE THE TUNNEL" />
+                    <SelectableTextBlock Text="{Binding TunnelClaimUrl}" FontSize="11.5"
+                                         Foreground="{DynamicResource AccentBrush}" />
+                    <Button Classes="ghost" Padding="12,6" FontSize="11" Content="Open claim link"
+                            HorizontalAlignment="Left" Command="{Binding OpenClaimUrlCommand}" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Border>
 
             <Border Background="{DynamicResource BgBaseBrush}" CornerRadius="10" Padding="13"
                     BorderBrush="{DynamicResource WarningBrush}" BorderThickness="1"

@@ -16,8 +16,20 @@ public partial class ServersViewModel : ObservableObject
     private readonly ServerManager _manager;
     private readonly Dictionary<string, ServerProcess> _processes = [];
     private readonly PortForwarding _forwarding = new();
+    private PlayitTunnel? _tunnel;
 
     private ServerProperties? _properties;
+
+    public static Func<string, Task>? ClipboardWriter { get; set; }
+
+    [ObservableProperty]
+    private bool _isTunnelStarting;
+
+    [ObservableProperty]
+    private string _tunnelAddress = string.Empty;
+
+    [ObservableProperty]
+    private string _tunnelClaimUrl = string.Empty;
 
     [ObservableProperty]
     private ServerDefinition? _selectedServer;
@@ -309,6 +321,92 @@ public partial class ServersViewModel : ObservableObject
         finally
         {
             IsForwarding = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task StartTunnelAsync()
+    {
+        if (SelectedServer is null || IsTunnelStarting)
+            return;
+
+        var server = SelectedServer;
+        IsTunnelStarting = true;
+        TunnelClaimUrl = string.Empty;
+        StatusText = "Starting the playit.gg tunnel";
+
+        try
+        {
+            _tunnel?.Dispose();
+            _tunnel = new PlayitTunnel(_paths);
+
+            _tunnel.ClaimUrlFound += (_, url) => Dispatcher.UIThread.Post(() =>
+            {
+                TunnelClaimUrl = url;
+                StatusText = "Open the claim link to authorise the tunnel";
+            });
+
+            _tunnel.TunnelAddressFound += (_, address) => Dispatcher.UIThread.Post(() =>
+            {
+                TunnelAddress = address;
+                server.TunnelAddress = address;
+                _manager.Save(server);
+                OnPropertyChanged(nameof(SelectedAddress));
+                StatusText = "Tunnel ready. Friends can join at " + address;
+            });
+
+            var progress = new Progress<string>(m => StatusText = m);
+            await _tunnel.StartAsync(progress);
+        }
+        catch (Exception e)
+        {
+            StatusText = "Tunnel failed: " + e.Message;
+            Vesper.Core.Diagnostics.ErrorService.Shared.Report("playit.gg tunnel failed", e);
+        }
+        finally
+        {
+            IsTunnelStarting = false;
+        }
+    }
+
+    [RelayCommand]
+    private void StopTunnel()
+    {
+        _tunnel?.Stop();
+        _tunnel?.Dispose();
+        _tunnel = null;
+        TunnelAddress = string.Empty;
+        TunnelClaimUrl = string.Empty;
+
+        if (SelectedServer is not null)
+        {
+            SelectedServer.TunnelAddress = null;
+            _manager.Save(SelectedServer);
+            OnPropertyChanged(nameof(SelectedAddress));
+        }
+
+        StatusText = "Tunnel stopped";
+    }
+
+    [RelayCommand]
+    private async Task CopyAddress()
+    {
+        if (ClipboardWriter is not null && !string.IsNullOrWhiteSpace(SelectedAddress))
+            await ClipboardWriter(SelectedAddress);
+    }
+
+    [RelayCommand]
+    private void OpenClaimUrl()
+    {
+        if (string.IsNullOrWhiteSpace(TunnelClaimUrl))
+            return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo { FileName = TunnelClaimUrl, UseShellExecute = true });
+        }
+        catch (Exception)
+        {
         }
     }
 
