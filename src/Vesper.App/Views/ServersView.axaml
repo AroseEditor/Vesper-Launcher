@@ -221,7 +221,14 @@
               <StackPanel Spacing="9">
                 <TextBlock Classes="label" Text="SHARE OVER THE INTERNET" />
                 <TextBlock Classes="subtitle" FontSize="11.5" TextWrapping="Wrap"
-                           Text="A playit.gg tunnel shares your server with no router changes and without exposing your IP." />
+                           Text="An ngrok tunnel shares your server with no router changes and without exposing your IP. Paste a free ngrok authtoken once and it is saved." />
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBox Grid.Column="0" Classes="field" Margin="0,0,8,0"
+                           PlaceholderText="ngrok authtoken"
+                           Text="{Binding NgrokAuthToken, Mode=TwoWay}" />
+                  <Button Grid.Column="1" Classes="ghost" Padding="12,8" FontSize="11"
+                          Content="Get token" Command="{Binding OpenNgrokDashboardCommand}" />
+                </Grid>
                 <StackPanel Orientation="Horizontal" Spacing="9">
                   <Button Classes="primary" Padding="15,9" Content="Start tunnel"
                           IsEnabled="{Binding !IsTunnelStarting}"
@@ -232,18 +239,6 @@
                           IsEnabled="{Binding !IsForwarding}"
                           Command="{Binding OpenPortCommand}" />
                 </StackPanel>
-                <Border Background="{DynamicResource BgElevatedBrush}" CornerRadius="9" Padding="11"
-                        IsVisible="{Binding TunnelClaimUrl, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                  <StackPanel Spacing="6">
-                    <TextBlock Classes="label" Text="AUTHORISE THE TUNNEL" />
-                    <SelectableTextBlock Text="{Binding TunnelClaimUrl}" FontSize="11.5"
-                                         Foreground="{DynamicResource AccentBrush}" />
-                    <Button Classes="ghost" Padding="12,6" FontSize="11" Content="Open claim link"
-                            HorizontalAlignment="Left" Command="{Binding OpenClaimUrlCommand}" />
-                    <TextBlock Classes="subtitle" FontSize="11" TextWrapping="Wrap"
-                               Text="In the page that opens, sign in and create a Minecraft Java tunnel to 127.0.0.1 on this server's port. The join address then appears above automatically." />
-                  </StackPanel>
-                </Border>
 
                 <Border Background="{DynamicResource BgBaseBrush}" CornerRadius="9" Padding="0"
                         ClipToBounds="True" MaxHeight="150"

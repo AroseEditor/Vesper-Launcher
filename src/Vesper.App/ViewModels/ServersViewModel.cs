@@ -16,7 +16,7 @@ public partial class ServersViewModel : ObservableObject
     private readonly ServerManager _manager;
     private readonly Dictionary<string, ServerProcess> _processes = [];
     private readonly PortForwarding _forwarding = new();
-    private PlayitTunnel? _tunnel;
+    private NgrokTunnel? _ngrok;
 
     private ServerProperties? _properties;
 
@@ -26,10 +26,10 @@ public partial class ServersViewModel : ObservableObject
     private bool _isTunnelStarting;
 
     [ObservableProperty]
-    private string _tunnelAddress = string.Empty;
+    private string _ngrokAuthToken = string.Empty;
 
     [ObservableProperty]
-    private string _tunnelClaimUrl = string.Empty;
+    private string _tunnelAddress = string.Empty;
 
     public ObservableCollection<string> TunnelLog { get; } = [];
 
@@ -105,6 +105,7 @@ public partial class ServersViewModel : ObservableObject
     {
         _paths = paths;
         _manager = new ServerManager(paths);
+        NgrokAuthToken = new NgrokTunnel(paths).SavedToken() ?? NgrokTunnel.DefaultAuthToken;
         Refresh();
     }
 
@@ -329,37 +330,21 @@ public partial class ServersViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task StartTunnelAsync()
+    private async Task StartTunnelAsync(CancellationToken cancellationToken)
     {
         if (SelectedServer is null || IsTunnelStarting)
             return;
 
         var server = SelectedServer;
         IsTunnelStarting = true;
-        TunnelClaimUrl = string.Empty;
-        StatusText = "Starting the playit.gg tunnel";
+        StatusText = "Starting the ngrok tunnel";
 
         try
         {
-            _tunnel?.Dispose();
-            _tunnel = new PlayitTunnel(_paths);
+            _ngrok?.Dispose();
+            _ngrok = new NgrokTunnel(_paths);
 
-            _tunnel.ClaimUrlFound += (_, url) => Dispatcher.UIThread.Post(() =>
-            {
-                TunnelClaimUrl = url;
-                StatusText = "Open the claim link to authorise the tunnel";
-            });
-
-            _tunnel.TunnelAddressFound += (_, address) => Dispatcher.UIThread.Post(() =>
-            {
-                TunnelAddress = address;
-                server.TunnelAddress = address;
-                _manager.Save(server);
-                OnPropertyChanged(nameof(SelectedAddress));
-                StatusText = "Tunnel ready. Friends can join at " + address;
-            });
-
-            _tunnel.Output += (_, line) => Dispatcher.UIThread.Post(() =>
+            _ngrok.Output += (_, line) => Dispatcher.UIThread.Post(() =>
             {
                 TunnelLog.Add(line);
 
@@ -369,15 +354,33 @@ public partial class ServersViewModel : ObservableObject
                 OnPropertyChanged(nameof(HasTunnelLog));
             });
 
+            var token = string.IsNullOrWhiteSpace(NgrokAuthToken)
+                ? _ngrok.SavedToken() ?? NgrokTunnel.DefaultAuthToken
+                : NgrokAuthToken;
+
             TunnelLog.Clear();
             OnPropertyChanged(nameof(HasTunnelLog));
+
             var progress = new Progress<string>(m => StatusText = m);
-            await _tunnel.StartAsync(progress);
+            var address = await _ngrok.StartAsync(server.Port, token, progress, cancellationToken);
+
+            if (string.IsNullOrEmpty(address))
+            {
+                StatusText = "ngrok started but no address appeared. Check the log and your token.";
+                return;
+            }
+
+            TunnelAddress = address;
+            server.TunnelAddress = address;
+            _manager.Save(server);
+            NgrokAuthToken = token;
+            OnPropertyChanged(nameof(SelectedAddress));
+            StatusText = "Tunnel ready. Friends can join at " + address;
         }
         catch (Exception e)
         {
             StatusText = "Tunnel failed: " + e.Message;
-            Vesper.Core.Diagnostics.ErrorService.Shared.Report("playit.gg tunnel failed", e);
+            Vesper.Core.Diagnostics.ErrorService.Shared.Report("ngrok tunnel failed", e);
         }
         finally
         {
@@ -388,11 +391,10 @@ public partial class ServersViewModel : ObservableObject
     [RelayCommand]
     private void StopTunnel()
     {
-        _tunnel?.Stop();
-        _tunnel?.Dispose();
-        _tunnel = null;
+        _ngrok?.Stop();
+        _ngrok?.Dispose();
+        _ngrok = null;
         TunnelAddress = string.Empty;
-        TunnelClaimUrl = string.Empty;
 
         if (SelectedServer is not null)
         {
@@ -412,14 +414,15 @@ public partial class ServersViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void OpenClaimUrl()
+    private void OpenNgrokDashboard()
     {
-        if (string.IsNullOrWhiteSpace(TunnelClaimUrl))
-            return;
-
         try
         {
-            Process.Start(new ProcessStartInfo { FileName = TunnelClaimUrl, UseShellExecute = true });
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = "https://dashboard.ngrok.com/get-started/your-authtoken",
+                UseShellExecute = true,
+            });
         }
         catch (Exception)
         {
