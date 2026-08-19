@@ -30,8 +30,21 @@ public partial class MainWindow : Window
         ServersViewModel.ClipboardWriter = text =>
             Clipboard?.SetTextAsync(text) ?? Task.CompletedTask;
 
+        ServersViewModel.KeyPicker = PickSshKeyAsync;
+
         if (DataContext is MainWindowViewModel model)
             await model.InitializeAsync();
+    }
+
+    private async Task<string?> PickSshKeyAsync()
+    {
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Choose your SSH private key",
+            AllowMultiple = false,
+        });
+
+        return files.Count == 0 ? null : files[0].TryGetLocalPath();
     }
 
     private void OnTitleBarPressed(object? sender, PointerPressedEventArgs e)

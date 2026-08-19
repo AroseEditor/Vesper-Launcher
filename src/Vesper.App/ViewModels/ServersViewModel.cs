@@ -16,17 +16,31 @@ public partial class ServersViewModel : ObservableObject
     private readonly ServerManager _manager;
     private readonly Dictionary<string, ServerProcess> _processes = [];
     private readonly PortForwarding _forwarding = new();
-    private NgrokTunnel? _ngrok;
+    private VpsRelay? _relay;
 
     private ServerProperties? _properties;
 
     public static Func<string, Task>? ClipboardWriter { get; set; }
 
-    [ObservableProperty]
-    private bool _isTunnelStarting;
+    public static Func<Task<string?>>? KeyPicker { get; set; }
 
     [ObservableProperty]
-    private string _ngrokAuthToken = string.Empty;
+    private bool _isRelayStarting;
+
+    [ObservableProperty]
+    private string _vpsHost = string.Empty;
+
+    [ObservableProperty]
+    private string _vpsUser = "root";
+
+    [ObservableProperty]
+    private int _vpsPort = 22;
+
+    [ObservableProperty]
+    private string _vpsKeyPath = string.Empty;
+
+    [ObservableProperty]
+    private int _vpsRemotePort = 6969;
 
     [ObservableProperty]
     private string _tunnelAddress = string.Empty;
@@ -105,7 +119,14 @@ public partial class ServersViewModel : ObservableObject
     {
         _paths = paths;
         _manager = new ServerManager(paths);
-        NgrokAuthToken = new NgrokTunnel(paths).SavedToken() ?? NgrokTunnel.DefaultAuthToken;
+
+        var relay = VpsRelayConfig.Load(paths);
+        VpsHost = relay.Host;
+        VpsUser = relay.User;
+        VpsPort = relay.SshPort;
+        VpsKeyPath = relay.KeyPath;
+        VpsRemotePort = relay.RemotePort;
+
         Refresh();
     }
 
@@ -330,21 +351,54 @@ public partial class ServersViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task StartTunnelAsync(CancellationToken cancellationToken)
+    private async Task BrowseKeyAsync()
     {
-        if (SelectedServer is null || IsTunnelStarting)
+        if (KeyPicker is null)
             return;
 
+        var path = await KeyPicker();
+
+        if (!string.IsNullOrWhiteSpace(path))
+            VpsKeyPath = path;
+    }
+
+    [RelayCommand]
+    private async Task StartVpsRelayAsync(CancellationToken cancellationToken)
+    {
+        if (SelectedServer is null || IsRelayStarting)
+            return;
+
+        if (string.IsNullOrWhiteSpace(VpsHost) || string.IsNullOrWhiteSpace(VpsKeyPath))
+        {
+            StatusText = "Enter your VPS address and the path to your SSH key first";
+            return;
+        }
+
+        if (!File.Exists(VpsKeyPath))
+        {
+            StatusText = "That SSH key file does not exist: " + VpsKeyPath;
+            return;
+        }
+
         var server = SelectedServer;
-        IsTunnelStarting = true;
-        StatusText = "Starting the ngrok tunnel";
+        IsRelayStarting = true;
+        StatusText = "Connecting to your VPS";
+
+        var config = new VpsRelayConfig
+        {
+            Host = VpsHost.Trim(),
+            User = string.IsNullOrWhiteSpace(VpsUser) ? "root" : VpsUser.Trim(),
+            SshPort = VpsPort <= 0 ? 22 : VpsPort,
+            KeyPath = VpsKeyPath.Trim(),
+            RemotePort = VpsRemotePort <= 0 ? 6969 : VpsRemotePort,
+        };
 
         try
         {
-            _ngrok?.Dispose();
-            _ngrok = new NgrokTunnel(_paths);
+            _relay?.Dispose();
+            _relay = new VpsRelay(config, server.Port);
 
-            _ngrok.Output += (_, line) => Dispatcher.UIThread.Post(() =>
+            _relay.Output += (_, line) => Dispatcher.UIThread.Post(() =>
             {
                 TunnelLog.Add(line);
 
@@ -354,46 +408,48 @@ public partial class ServersViewModel : ObservableObject
                 OnPropertyChanged(nameof(HasTunnelLog));
             });
 
-            var token = string.IsNullOrWhiteSpace(NgrokAuthToken)
-                ? _ngrok.SavedToken() ?? NgrokTunnel.DefaultAuthToken
-                : NgrokAuthToken;
-
             TunnelLog.Clear();
             OnPropertyChanged(nameof(HasTunnelLog));
 
-            var progress = new Progress<string>(m => StatusText = m);
-            var address = await _ngrok.StartAsync(server.Port, token, progress, cancellationToken);
+            await _relay.DetectOsAsync(cancellationToken);
 
-            if (string.IsNullOrEmpty(address))
-            {
-                StatusText = "ngrok started but no address appeared. Check the log and your token.";
-                return;
-            }
+            StatusText = "Picking a free port on your VPS";
+            var port = await _relay.ChooseRemotePortAsync(cancellationToken);
+            VpsRemotePort = port;
+
+            StatusText = "Installing the relay and opening the firewall";
+            await _relay.PrepareAsync(cancellationToken);
+
+            StatusText = "Starting the relay";
+            var address = await _relay.StartAsync(cancellationToken);
 
             TunnelAddress = address;
             server.TunnelAddress = address;
             _manager.Save(server);
-            NgrokAuthToken = token;
+
+            config.RemotePort = port;
+            config.Save(_paths);
+
             OnPropertyChanged(nameof(SelectedAddress));
-            StatusText = "Tunnel ready. Friends can join at " + address;
+            StatusText = "Relay live. Friends can join at " + address;
         }
         catch (Exception e)
         {
-            StatusText = "Tunnel failed: " + e.Message;
-            Vesper.Core.Diagnostics.ErrorService.Shared.Report("ngrok tunnel failed", e);
+            StatusText = "VPS relay failed: " + e.Message;
+            Vesper.Core.Diagnostics.ErrorService.Shared.Report("VPS relay failed", e);
         }
         finally
         {
-            IsTunnelStarting = false;
+            IsRelayStarting = false;
         }
     }
 
     [RelayCommand]
-    private void StopTunnel()
+    private void StopVpsRelay()
     {
-        _ngrok?.Stop();
-        _ngrok?.Dispose();
-        _ngrok = null;
+        _relay?.Stop();
+        _relay?.Dispose();
+        _relay = null;
         TunnelAddress = string.Empty;
 
         if (SelectedServer is not null)
@@ -403,7 +459,7 @@ public partial class ServersViewModel : ObservableObject
             OnPropertyChanged(nameof(SelectedAddress));
         }
 
-        StatusText = "Tunnel stopped";
+        StatusText = "Relay stopped";
     }
 
     [RelayCommand]
@@ -411,22 +467,6 @@ public partial class ServersViewModel : ObservableObject
     {
         if (ClipboardWriter is not null && !string.IsNullOrWhiteSpace(SelectedAddress))
             await ClipboardWriter(SelectedAddress);
-    }
-
-    [RelayCommand]
-    private void OpenNgrokDashboard()
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = "https://dashboard.ngrok.com/get-started/your-authtoken",
-                UseShellExecute = true,
-            });
-        }
-        catch (Exception)
-        {
-        }
     }
 
     [RelayCommand]
@@ -517,9 +557,9 @@ public partial class ServersViewModel : ObservableObject
             {
                 "Your provider puts you behind their own network, known as CGNAT.",
                 "No port forwarding can reach you on this connection, and no launcher can fix that.",
-                "1. Ask your provider for a public or static IP address, often a small fee",
-                "2. Use a tunnel such as playit.gg or ngrok",
-                "3. Play over LAN, or rent a hosted server",
+                "1. Use the Share through your VPS option above, which relays over SSH and works behind CGNAT",
+                "2. Or ask your provider for a public or static IP address, often a small fee",
+                "3. Or play over LAN, or rent a hosted server",
             },
 
             _ => [],

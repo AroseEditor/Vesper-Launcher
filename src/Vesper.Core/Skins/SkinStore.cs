@@ -48,7 +48,6 @@ public sealed class SkinStore
         const int size = SkinGeometry.TextureSize;
         var pixels = new uint[size * size];
 
-        // Official Alex skin palette (Green shirt, Orange hair, Alex skin tone)
         var alexSkin = Rgb(0xEA, 0xA0, 0x79);
         var alexShade = Rgb(0xD0, 0x88, 0x64);
         var alexHair = Rgb(0xC8, 0x5B, 0x24); // Signature Alex Orange Hair

@@ -44,7 +44,6 @@ public sealed class ForgeInstaller : ILoaderInstaller
         string minecraftVersion,
         CancellationToken cancellationToken = default)
     {
-        // Retry once on transient network errors before giving up.
         for (var attempt = 0; attempt < 2; attempt++)
         {
             try
@@ -61,7 +60,6 @@ public sealed class ForgeInstaller : ILoaderInstaller
             {
                 if (attempt == 0 && !cancellationToken.IsCancellationRequested)
                 {
-                    // Wait 2 seconds then retry once for transient failures.
                     await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
                     continue;
                 }
@@ -73,7 +71,6 @@ public sealed class ForgeInstaller : ILoaderInstaller
             }
         }
 
-        // Unreachable, but satisfies compiler.
         throw new LoaderNotSupportedException(Kind,
             $"no builds published for Minecraft {minecraftVersion}");
     }
@@ -128,8 +125,6 @@ public sealed class NeoForgeInstaller : ILoaderInstaller
 
     public LoaderKind Kind => LoaderKind.NeoForge;
 
-    // Note: CmlLib's NeoForgeInstaller does not expose an HttpClient overload,
-    // so _http cannot be forwarded here. Kept for future compatibility.
     private CmlNeoForge.NeoForgeInstaller Create() =>
         new(new MinecraftLauncher(SharedMinecraftPath.For(_paths)));
 
@@ -137,7 +132,6 @@ public sealed class NeoForgeInstaller : ILoaderInstaller
         string minecraftVersion,
         CancellationToken cancellationToken = default)
     {
-        // Retry once on transient network errors before giving up.
         for (var attempt = 0; attempt < 2; attempt++)
         {
             try

@@ -219,22 +219,36 @@
 
             <Border Background="{DynamicResource BgBaseBrush}" CornerRadius="10" Padding="13">
               <StackPanel Spacing="9">
-                <TextBlock Classes="label" Text="SHARE OVER THE INTERNET" />
+                <TextBlock Classes="label" Text="SHARE THROUGH YOUR VPS" />
                 <TextBlock Classes="subtitle" FontSize="11.5" TextWrapping="Wrap"
-                           Text="An ngrok tunnel shares your server with no router changes and without exposing your IP. Paste a free ngrok authtoken once and it is saved." />
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBox Grid.Column="0" Classes="field" Margin="0,0,8,0"
-                           PlaceholderText="ngrok authtoken"
-                           Text="{Binding NgrokAuthToken, Mode=TwoWay}" />
-                  <Button Grid.Column="1" Classes="ghost" Padding="12,8" FontSize="11"
-                          Content="Get token" Command="{Binding OpenNgrokDashboardCommand}" />
+                           Text="Your VPS relays your local server to the internet over SSH. No router changes, and your home IP stays hidden. Paste your VPS address and pick your SSH key, then start the tunnel." />
+
+                <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                  <TextBox Grid.Column="0" Classes="field"
+                           PlaceholderText="VPS IP or hostname"
+                           Text="{Binding VpsHost, Mode=TwoWay}" />
+                  <TextBox Grid.Column="1" Classes="field" Width="120"
+                           PlaceholderText="SSH user"
+                           Text="{Binding VpsUser, Mode=TwoWay}" />
+                  <NumericUpDown Grid.Column="2" Classes="field" Width="118"
+                                 Minimum="1" Maximum="65535" Increment="1"
+                                 Value="{Binding VpsPort, Mode=TwoWay}" />
                 </Grid>
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                  <TextBox Grid.Column="0" Classes="field"
+                           PlaceholderText="Path to your SSH key"
+                           Text="{Binding VpsKeyPath, Mode=TwoWay}" />
+                  <Button Grid.Column="1" Classes="ghost" Padding="12,8" FontSize="11"
+                          Content="Add SSH key" Command="{Binding BrowseKeyCommand}" />
+                </Grid>
+
                 <StackPanel Orientation="Horizontal" Spacing="9">
                   <Button Classes="primary" Padding="15,9" Content="Start tunnel"
-                          IsEnabled="{Binding !IsTunnelStarting}"
-                          Command="{Binding StartTunnelCommand}" />
+                          IsEnabled="{Binding !IsRelayStarting}"
+                          Command="{Binding StartVpsRelayCommand}" />
                   <Button Classes="ghost" Padding="15,9" Content="Stop tunnel"
-                          Command="{Binding StopTunnelCommand}" />
+                          Command="{Binding StopVpsRelayCommand}" />
                   <Button Classes="ghost" Padding="15,9" Content="Open port (UPnP)"
                           IsEnabled="{Binding !IsForwarding}"
                           Command="{Binding OpenPortCommand}" />
