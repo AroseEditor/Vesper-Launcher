@@ -103,20 +103,25 @@ public sealed class VpsRelay : IDisposable
         return _config.RemotePort;
     }
 
+    private const string SudoPrefix =
+        "SUDO=; if [ \"$(id -u)\" -ne 0 ]; then SUDO='sudo -n'; fi ; ";
+
     public async Task PrepareAsync(CancellationToken cancellationToken = default)
     {
         var inner = _config.RemotePort + InnerPortOffset;
 
-        var script = string.Join(" ; ", new[]
+        var script = SudoPrefix + string.Join(" ; ", new[]
         {
             $"mkdir -p ~/{_config.WorkDir}",
             "command -v socat >/dev/null 2>&1 || " +
-            "(sudo -n apt-get update -y && sudo -n apt-get install -y socat) 2>/dev/null || " +
-            "sudo -n dnf install -y socat 2>/dev/null || " +
-            "sudo -n yum install -y socat 2>/dev/null || " +
-            "sudo -n apk add socat 2>/dev/null || echo VESPER_NEED_SOCAT",
-            $"sudo -n ufw allow {_config.RemotePort}/tcp 2>/dev/null || true",
-            $"sudo -n firewall-cmd --add-port={_config.RemotePort}/tcp 2>/dev/null || true",
+            "( $SUDO apt-get update -y && $SUDO apt-get install -y socat ) 2>/dev/null || " +
+            "$SUDO dnf install -y socat 2>/dev/null || " +
+            "$SUDO yum install -y socat 2>/dev/null || " +
+            "$SUDO apk add socat 2>/dev/null || true",
+            "command -v socat >/dev/null 2>&1 || echo VESPER_NEED_SOCAT",
+            $"$SUDO ufw allow {_config.RemotePort}/tcp 2>/dev/null || true",
+            $"$SUDO firewall-cmd --add-port={_config.RemotePort}/tcp 2>/dev/null || true",
+            "$SUDO firewall-cmd --reload 2>/dev/null || true",
         });
 
         var output = await RunAsync(script, cancellationToken);
@@ -138,9 +143,9 @@ public sealed class VpsRelay : IDisposable
 
         var inner = _config.RemotePort + InnerPortOffset;
 
-        var remote = string.Join(" ; ", new[]
+        var remote = SudoPrefix + string.Join(" ; ", new[]
         {
-            $"fuser -k {_config.RemotePort}/tcp 2>/dev/null || true",
+            $"$SUDO fuser -k {_config.RemotePort}/tcp 2>/dev/null || true",
             $"echo VESPER_RELAY_READY {_config.Host}:{_config.RemotePort}",
             $"socat TCP-LISTEN:{_config.RemotePort},fork,reuseaddr TCP:127.0.0.1:{inner}",
         });
