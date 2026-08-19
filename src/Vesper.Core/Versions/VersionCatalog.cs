@@ -40,21 +40,38 @@ public sealed class VersionCatalog
         _cacheFile = Path.Combine(paths.CacheDir, "version_manifest.json");
     }
 
+    public static readonly TimeSpan CacheLifetime = TimeSpan.FromHours(6);
+
     public async Task<IReadOnlyList<MinecraftVersionInfo>> GetAllAsync(
         CancellationToken cancellationToken = default)
     {
         string? json = null;
 
-        try
+        if (File.Exists(_cacheFile) &&
+            DateTime.UtcNow - File.GetLastWriteTimeUtc(_cacheFile) < CacheLifetime)
         {
-            json = await _http.GetStringAsync(ManifestUrl, cancellationToken);
-            Directory.CreateDirectory(Path.GetDirectoryName(_cacheFile)!);
-            await File.WriteAllTextAsync(_cacheFile, json, cancellationToken);
-        }
-        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException)
-        {
-            if (File.Exists(_cacheFile))
+            try
+            {
                 json = await File.ReadAllTextAsync(_cacheFile, cancellationToken);
+            }
+            catch (IOException)
+            {
+            }
+        }
+
+        if (string.IsNullOrEmpty(json))
+        {
+            try
+            {
+                json = await _http.GetStringAsync(ManifestUrl, cancellationToken);
+                Directory.CreateDirectory(Path.GetDirectoryName(_cacheFile)!);
+                await File.WriteAllTextAsync(_cacheFile, json, cancellationToken);
+            }
+            catch (Exception e) when (e is HttpRequestException or TaskCanceledException or IOException)
+            {
+                if (File.Exists(_cacheFile))
+                    json = await File.ReadAllTextAsync(_cacheFile, cancellationToken);
+            }
         }
 
         if (string.IsNullOrEmpty(json))
