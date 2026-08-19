@@ -16,6 +16,7 @@ public partial class ServersViewModel : ObservableObject
     private readonly ServerManager _manager;
     private readonly Dictionary<string, ServerProcess> _processes = [];
     private readonly PortForwarding _forwarding = new();
+    private readonly ServerJavaProvisioner _serverJava;
     private VpsRelay? _relay;
 
     private ServerProperties? _properties;
@@ -119,6 +120,7 @@ public partial class ServersViewModel : ObservableObject
     {
         _paths = paths;
         _manager = new ServerManager(paths);
+        _serverJava = new ServerJavaProvisioner(paths);
 
         var relay = VpsRelayConfig.Load(paths);
         VpsHost = relay.Host;
@@ -266,7 +268,7 @@ public partial class ServersViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void Start()
+    private async Task Start(CancellationToken cancellationToken)
     {
         if (SelectedServer is null || !CanStart)
             return;
@@ -277,8 +279,9 @@ public partial class ServersViewModel : ObservableObject
         try
         {
             Console.Clear();
-            process.Start(
-                ResolveJava(server), _manager.DirectoryFor(server.Id), server.JarFileName, server.MemoryMb);
+            var java = await ResolveJavaAsync(server, cancellationToken);
+
+            process.Start(java, _manager.DirectoryFor(server.Id), server.JarFileName, server.MemoryMb);
 
             _manager.MarkStarted(server);
             StatusText = "Started " + server.Name;
@@ -289,6 +292,7 @@ public partial class ServersViewModel : ObservableObject
         catch (Exception e)
         {
             StatusText = "Could not start: " + e.Message;
+            Vesper.Core.Diagnostics.ErrorService.Shared.Report("Server start failed", e);
         }
     }
 
@@ -476,8 +480,10 @@ public partial class ServersViewModel : ObservableObject
             return;
 
         var server = SelectedServer;
+        var java = await ResolveJavaAsync(server, CancellationToken.None);
+
         await ProcessFor(server).RestartAsync(
-            ResolveJava(server), _manager.DirectoryFor(server.Id), server.JarFileName, server.MemoryMb);
+            java, _manager.DirectoryFor(server.Id), server.JarFileName, server.MemoryMb);
     }
 
     [RelayCommand]
@@ -592,25 +598,16 @@ public partial class ServersViewModel : ObservableObject
         return process;
     }
 
-    private string ResolveJava(ServerDefinition server)
+    private async Task<string> ResolveJavaAsync(ServerDefinition server, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrWhiteSpace(server.JavaPath) && File.Exists(server.JavaPath))
             return server.JavaPath;
 
-        if (Directory.Exists(_paths.RuntimeDir))
-        {
-            var name = OperatingSystem.IsWindows() ? "javaw.exe" : "java";
-            var candidate = Directory
-                .EnumerateFiles(_paths.RuntimeDir, name, SearchOption.AllDirectories)
-                .FirstOrDefault();
+        var required = ServerJavaProvisioner.RequiredMajor(server.MinecraftVersion);
+        StatusText = $"Preparing Java {required} for Minecraft {server.MinecraftVersion}";
 
-            if (candidate is not null)
-                return OperatingSystem.IsWindows()
-                    ? candidate.Replace("javaw.exe", "java.exe")
-                    : candidate;
-        }
-
-        return OperatingSystem.IsWindows() ? "java.exe" : "java";
+        var progress = new Progress<string>(m => StatusText = m);
+        return await _serverJava.EnsureAsync(server.MinecraftVersion, progress, cancellationToken);
     }
 
     private void Refresh()
