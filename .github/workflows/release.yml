@@ -38,6 +38,7 @@ jobs:
     name: ${{ matrix.label }}
     needs: [version, mod]
     runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ startsWith(matrix.rid, 'osx') }}
     strategy:
       fail-fast: false
       matrix:
@@ -150,6 +151,7 @@ jobs:
           </plist>
           PLIST
           chmod +x "$APP/Contents/MacOS/VesperLauncher"
+          rm -rf publish
           mkdir -p artifacts
           hdiutil create -volname "Vesper Launcher" -srcfolder build -ov -format UDZO \
             "artifacts/VesperLauncher-${{ needs.version.outputs.value }}-${{ matrix.rid }}.dmg"
