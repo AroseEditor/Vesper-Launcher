@@ -4,6 +4,7 @@ using CmlLib.Core.Auth;
 using CmlLib.Core.Installers;
 using CmlLib.Core.ProcessBuilder;
 using Vesper.Core.Profiles;
+using Vesper.Core.Servers;
 using Vesper.Core.Skins;
 using Vesper.Core.Storage;
 
@@ -72,9 +73,10 @@ public sealed class LaunchService
         var optionsFile = _controls.OptionsFileFor(profile.Id);
         _controls.ApplyTo(optionsFile);
 
+        var java = ResolveJava(profile);
         var useTuning = profile.UseOptimisedJvmArguments;
         var launched = await StartWithCaptureAsync(
-            launcher, profile, session, useTuning, optionsFile, cancellationToken);
+            launcher, profile, session, useTuning, optionsFile, java, cancellationToken);
 
         if (useTuning && await ExitedEarlyAsync(launched.Process))
         {
@@ -84,11 +86,20 @@ public sealed class LaunchService
                 Diagnostics.ErrorSeverity.Warning);
 
             launched = await StartWithCaptureAsync(
-                launcher, profile, session, false, optionsFile, cancellationToken);
+                launcher, profile, session, false, optionsFile, java, cancellationToken);
         }
 
         progress?.Report(tracker.Snapshot(LaunchPhase.Started));
         return launched.Process;
+    }
+
+    private string? ResolveJava(Profile profile)
+    {
+        if (!string.IsNullOrWhiteSpace(profile.JavaPath) && File.Exists(profile.JavaPath))
+            return profile.JavaPath;
+
+        var major = ServerJavaProvisioner.RequiredMajor(profile.MinecraftVersion);
+        return new ServerJavaProvisioner(_paths).FindInstalledJava(major);
     }
 
     private async Task<LaunchedProcess> StartWithCaptureAsync(
@@ -97,11 +108,12 @@ public sealed class LaunchService
         MSession session,
         bool useTuning,
         string optionsFile,
+        string? javaPath,
         CancellationToken cancellationToken)
     {
         var process = await launcher.BuildProcessAsync(
             profile.EffectiveVersionId,
-            BuildOption(profile, session, useTuning),
+            BuildOption(profile, session, useTuning, javaPath),
             cancellationToken);
 
         var logPath = Path.Combine(
@@ -188,7 +200,7 @@ public sealed class LaunchService
         System.Text.StringBuilder Tail,
         string LogPath);
 
-    private static MLaunchOption BuildOption(Profile profile, MSession session, bool useTuning)
+    private static MLaunchOption BuildOption(Profile profile, MSession session, bool useTuning, string? javaPath)
     {
         var option = new MLaunchOption
         {
@@ -204,6 +216,8 @@ public sealed class LaunchService
 
         if (!string.IsNullOrWhiteSpace(profile.JavaPath))
             option.JavaPath = profile.JavaPath;
+        else if (!string.IsNullOrWhiteSpace(javaPath))
+            option.JavaPath = javaPath;
 
         var extra = useTuning
             ? JvmTuning.Merge(

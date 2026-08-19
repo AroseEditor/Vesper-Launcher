@@ -63,6 +63,10 @@ public partial class PlayViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
+    public string LaunchButtonText => IsBusy ? "LOADING" : "PLAY";
+
+    partial void OnIsBusyChanged(bool value) => OnPropertyChanged(nameof(LaunchButtonText));
+
     [ObservableProperty]
     private double _progress;
 

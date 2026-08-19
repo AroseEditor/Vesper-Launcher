@@ -219,12 +219,17 @@
           </StackPanel>
         </Button>
 
-        <!-- Launch Button & Progress Bar -->
-        <StackPanel Grid.Column="2" Spacing="6" VerticalAlignment="Center" Width="200">
-          <TextBlock Text="{Binding StatusText}" FontSize="11" TextTrimming="CharacterEllipsis"
-                     Foreground="{DynamicResource TextMutedBrush}" HorizontalAlignment="Right"
-                     IsVisible="{Binding IsBusy}"/>
-          <ProgressBar Classes="slim" Value="{Binding Progress}" Maximum="100"
+        <StackPanel Grid.Column="2" Spacing="7" VerticalAlignment="Center" Width="220">
+          <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsBusy}">
+            <TextBlock Grid.Column="0" Text="{Binding StatusText}" FontSize="11"
+                       TextTrimming="CharacterEllipsis"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Grid.Column="1" Text="{Binding Progress, StringFormat='{}{0:0}%'}"
+                       FontSize="11" FontWeight="SemiBold" Margin="8,0,0,0"
+                       Foreground="{DynamicResource AccentBrush}"
+                       IsVisible="{Binding !IsLoadingLoaders}" />
+          </Grid>
+          <ProgressBar Height="8" CornerRadius="4" Value="{Binding Progress}" Maximum="100"
                        IsIndeterminate="{Binding IsLoadingLoaders}"
                        IsVisible="{Binding IsBusy}"/>
 
@@ -241,7 +246,8 @@
                 <Path Classes="icon solid" Width="16" Height="16"
                       Fill="{DynamicResource AccentContrastBrush}"
                       Data="{StaticResource IconPlay}"/>
-                <TextBlock Text="PLAY" VerticalAlignment="Center" FontWeight="Bold" LetterSpacing="1"/>
+                <TextBlock VerticalAlignment="Center" FontWeight="Bold" LetterSpacing="1"
+                           Text="{Binding LaunchButtonText}"/>
               </StackPanel>
             </Button>
           </Panel>

@@ -18,9 +18,9 @@ public sealed class Profile
 
     public string? LaunchVersionId { get; set; }
 
-    public int MaximumRamMb { get; set; } = 4096;
+    public int MaximumRamMb { get; set; } = 6144;
 
-    public int MinimumRamMb { get; set; } = 512;
+    public int MinimumRamMb { get; set; } = 2048;
 
     public int ScreenWidth { get; set; }
 
