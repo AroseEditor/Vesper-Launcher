@@ -1,7 +1,6 @@
 package dev.vesper.client;
 
 import dev.vesper.VesperMod;
-import dev.vesper.config.BlurPreset;
 import dev.vesper.config.VesperConfig;
 import dev.vesper.module.ModuleCategory;
 import dev.vesper.module.VesperModule;
@@ -19,7 +18,6 @@ public class VesperScreen extends Screen {
     private static final int ACCENT = 0xFFB57EDC;
     private static final int MUTED = 0xFFA9A2B5;
     private static final int FAINT = 0xFF6E6880;
-    private static final int PRIMARY = 0xFFF2EEF6;
 
     private ModuleCategory category = ModuleCategory.PERFORMANCE;
 
