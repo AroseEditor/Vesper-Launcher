@@ -23,6 +23,18 @@ public class ServerJavaProvisionerTests
         Assert.Equal(expected, ServerJavaProvisioner.RequiredMajor(version));
     }
 
+    [Theory]
+    [InlineData("openjdk version \"1.8.0_382\"", 8)]
+    [InlineData("java version \"1.8.0_202\"", 8)]
+    [InlineData("openjdk version \"17.0.8\" 2023-07-18", 17)]
+    [InlineData("openjdk version \"21.0.1\" 2023-10-17", 21)]
+    [InlineData("openjdk version \"16\" 2021-03-16", 16)]
+    [InlineData("no version here", 0)]
+    public void ParseMajor_reads_java_version_output(string output, int expected)
+    {
+        Assert.Equal(expected, ServerJavaProvisioner.ParseMajor(output));
+    }
+
     [Fact]
     public void DownloadUrl_targets_adoptium_jre()
     {

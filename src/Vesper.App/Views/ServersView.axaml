@@ -235,13 +235,24 @@
                                  Value="{Binding VpsPort, Mode=TwoWay}" />
                 </Grid>
 
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <ToggleSwitch OnContent="Sign in with root password"
+                              OffContent="Sign in with an SSH key"
+                              IsChecked="{Binding VpsUsePassword, Mode=TwoWay}"
+                              Foreground="{DynamicResource TextMutedBrush}" />
+
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"
+                      IsVisible="{Binding !VpsUsePassword}">
                   <TextBox Grid.Column="0" Classes="field"
                            PlaceholderText="Path to your SSH key"
                            Text="{Binding VpsKeyPath, Mode=TwoWay}" />
                   <Button Grid.Column="1" Classes="ghost" Padding="12,8" FontSize="11"
                           Content="Add SSH key" Command="{Binding BrowseKeyCommand}" />
                 </Grid>
+
+                <TextBox Classes="field" PasswordChar="●"
+                         IsVisible="{Binding VpsUsePassword}"
+                         PlaceholderText="Root password"
+                         Text="{Binding VpsPassword, Mode=TwoWay}" />
 
                 <StackPanel Orientation="Horizontal" Spacing="9">
                   <Button Classes="primary" Padding="15,9" Content="Start tunnel"

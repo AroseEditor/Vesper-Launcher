@@ -1,6 +1,6 @@
-using System.Diagnostics;
-using System.Text;
+using System.Net;
 using System.Text.Json;
+using Renci.SshNet;
 using Vesper.Core.Storage;
 
 namespace Vesper.Core.Servers;
@@ -13,7 +13,11 @@ public sealed class VpsRelayConfig
 
     public int SshPort { get; set; } = 22;
 
+    public string AuthMode { get; set; } = "key";
+
     public string KeyPath { get; set; } = string.Empty;
+
+    public string Password { get; set; } = string.Empty;
 
     public int RemotePort { get; set; } = 6969;
 
@@ -52,9 +56,15 @@ public sealed class VpsRelay : IDisposable
 {
     public const int InnerPortOffset = 1;
 
+    private const string SudoPrefix =
+        "SUDO=; if [ \"$(id -u)\" -ne 0 ]; then SUDO='sudo -n'; fi ; ";
+
     private readonly VpsRelayConfig _config;
     private readonly int _localPort;
-    private Process? _tunnel;
+
+    private SshClient? _client;
+    private ForwardedPortRemote? _forward;
+    private SshCommand? _socat;
 
     public VpsRelay(VpsRelayConfig config, int localPort)
     {
@@ -64,9 +74,13 @@ public sealed class VpsRelay : IDisposable
 
     public event EventHandler<string>? Output;
 
-    public bool IsRunning => _tunnel is { HasExited: false };
+    public bool IsRunning => _forward is { IsStarted: true };
 
     public string JoinAddress => $"{_config.Host}:{_config.RemotePort}";
+
+    private bool UsesPassword =>
+        string.Equals(_config.AuthMode, "password", StringComparison.OrdinalIgnoreCase) &&
+        !string.IsNullOrEmpty(_config.Password);
 
     public async Task<string> DetectOsAsync(CancellationToken cancellationToken = default)
     {
@@ -103,9 +117,6 @@ public sealed class VpsRelay : IDisposable
         return _config.RemotePort;
     }
 
-    private const string SudoPrefix =
-        "SUDO=; if [ \"$(id -u)\" -ne 0 ]; then SUDO='sudo -n'; fi ; ";
-
     public async Task PrepareAsync(CancellationToken cancellationToken = default)
     {
         var inner = _config.RemotePort + InnerPortOffset;
@@ -141,115 +152,126 @@ public sealed class VpsRelay : IDisposable
         if (IsRunning)
             return Task.FromResult(JoinAddress);
 
-        var inner = _config.RemotePort + InnerPortOffset;
-
-        var remote = SudoPrefix + string.Join(" ; ", new[]
+        return Task.Run(() =>
         {
-            $"$SUDO fuser -k {_config.RemotePort}/tcp 2>/dev/null || true",
-            $"echo VESPER_RELAY_READY {_config.Host}:{_config.RemotePort}",
-            $"socat TCP-LISTEN:{_config.RemotePort},fork,reuseaddr TCP:127.0.0.1:{inner}",
-        });
+            var client = Connect();
+            var inner = _config.RemotePort + InnerPortOffset;
 
-        var info = new ProcessStartInfo
-        {
-            FileName = "ssh",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
+            client.RunCommand(SudoPrefix + $"$SUDO fuser -k {_config.RemotePort}/tcp 2>/dev/null || true");
 
-        AddCommonSshArgs(info);
-        info.ArgumentList.Add("-o");
-        info.ArgumentList.Add("ExitOnForwardFailure=yes");
-        info.ArgumentList.Add("-R");
-        info.ArgumentList.Add($"127.0.0.1:{inner}:localhost:{_localPort}");
-        info.ArgumentList.Add($"{_config.User}@{_config.Host}");
-        info.ArgumentList.Add(remote);
+            _forward = new ForwardedPortRemote(
+                IPAddress.Loopback, (uint)inner, IPAddress.Loopback, (uint)_localPort);
 
-        var process = new Process { StartInfo = info, EnableRaisingEvents = true };
-        process.OutputDataReceived += (_, e) => { if (e.Data is not null) Output?.Invoke(this, e.Data); };
-        process.ErrorDataReceived += (_, e) => { if (e.Data is not null) Output?.Invoke(this, e.Data); };
+            _forward.Exception += (_, e) => Output?.Invoke(this, "forward error: " + e.Exception.Message);
 
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-        _tunnel = process;
+            client.AddForwardedPort(_forward);
+            _forward.Start();
 
-        return Task.FromResult(JoinAddress);
+            Output?.Invoke(this, $"VESPER_RELAY_READY {_config.Host}:{_config.RemotePort}");
+
+            _socat = client.CreateCommand(
+                $"socat TCP-LISTEN:{_config.RemotePort},fork,reuseaddr TCP:127.0.0.1:{inner}");
+            _socat.BeginExecute();
+
+            return JoinAddress;
+        }, cancellationToken);
     }
 
     public void Stop()
     {
-        if (_tunnel is null)
-            return;
+        try
+        {
+            _socat?.CancelAsync();
+        }
+        catch (Exception)
+        {
+        }
+
+        _socat?.Dispose();
+        _socat = null;
 
         try
         {
-            if (!_tunnel.HasExited)
-                _tunnel.Kill(entireProcessTree: true);
+            if (_forward is { IsStarted: true })
+                _forward.Stop();
         }
-        catch (InvalidOperationException)
+        catch (Exception)
         {
         }
 
-        _tunnel.Dispose();
-        _tunnel = null;
+        _forward?.Dispose();
+        _forward = null;
+
+        try
+        {
+            if (_client is { IsConnected: true })
+                _client.Disconnect();
+        }
+        catch (Exception)
+        {
+        }
+
+        _client?.Dispose();
+        _client = null;
     }
 
     public void Dispose() => Stop();
 
-    private async Task<string> RunAsync(string remoteCommand, CancellationToken cancellationToken)
+    private Task<string> RunAsync(string command, CancellationToken cancellationToken) =>
+        Task.Run(() => Run(command), cancellationToken);
+
+    private string Run(string command)
     {
-        var info = new ProcessStartInfo
+        var client = Connect();
+
+        using var cmd = client.CreateCommand(command);
+        var output = cmd.Execute() ?? string.Empty;
+        var combined = output + (cmd.Error ?? string.Empty);
+
+        foreach (var raw in combined.Split('\n'))
         {
-            FileName = "ssh",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
+            var line = raw.TrimEnd('\r');
+
+            if (line.Length > 0)
+                Output?.Invoke(this, line);
+        }
+
+        return combined;
+    }
+
+    private SshClient Connect()
+    {
+        if (_client is { IsConnected: true })
+            return _client;
+
+        _client?.Dispose();
+
+        var client = new SshClient(BuildConnectionInfo());
+        client.KeepAliveInterval = TimeSpan.FromSeconds(30);
+        client.Connect();
+        _client = client;
+        return client;
+    }
+
+    private ConnectionInfo BuildConnectionInfo()
+    {
+        AuthenticationMethod auth;
+
+        if (UsesPassword)
+        {
+            auth = new PasswordAuthenticationMethod(_config.User, _config.Password);
+        }
+        else
+        {
+            if (!File.Exists(_config.KeyPath))
+                throw new InvalidOperationException("SSH key file not found: " + _config.KeyPath);
+
+            auth = new PrivateKeyAuthenticationMethod(_config.User, new PrivateKeyFile(_config.KeyPath));
+        }
+
+        return new ConnectionInfo(_config.Host, _config.SshPort, _config.User, auth)
+        {
+            Timeout = TimeSpan.FromSeconds(20),
         };
-
-        AddCommonSshArgs(info);
-        info.ArgumentList.Add($"{_config.User}@{_config.Host}");
-        info.ArgumentList.Add(remoteCommand);
-
-        using var process = new Process { StartInfo = info };
-        var buffer = new StringBuilder();
-
-        process.OutputDataReceived += (_, e) => Append(buffer, e.Data);
-        process.ErrorDataReceived += (_, e) => Append(buffer, e.Data);
-
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-        await process.WaitForExitAsync(cancellationToken);
-
-        return buffer.ToString();
-    }
-
-    private void AddCommonSshArgs(ProcessStartInfo info)
-    {
-        info.ArgumentList.Add("-i");
-        info.ArgumentList.Add(_config.KeyPath);
-        info.ArgumentList.Add("-p");
-        info.ArgumentList.Add(_config.SshPort.ToString());
-        info.ArgumentList.Add("-o");
-        info.ArgumentList.Add("StrictHostKeyChecking=accept-new");
-        info.ArgumentList.Add("-o");
-        info.ArgumentList.Add("BatchMode=yes");
-        info.ArgumentList.Add("-o");
-        info.ArgumentList.Add("ServerAliveInterval=30");
-        info.ArgumentList.Add("-o");
-        info.ArgumentList.Add("ConnectTimeout=15");
-    }
-
-    private void Append(StringBuilder buffer, string? line)
-    {
-        if (line is null)
-            return;
-
-        buffer.AppendLine(line);
-        Output?.Invoke(this, line);
     }
 }

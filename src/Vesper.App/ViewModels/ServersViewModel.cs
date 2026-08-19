@@ -41,6 +41,12 @@ public partial class ServersViewModel : ObservableObject
     private string _vpsKeyPath = string.Empty;
 
     [ObservableProperty]
+    private bool _vpsUsePassword;
+
+    [ObservableProperty]
+    private string _vpsPassword = string.Empty;
+
+    [ObservableProperty]
     private int _vpsRemotePort = 6969;
 
     [ObservableProperty]
@@ -127,6 +133,8 @@ public partial class ServersViewModel : ObservableObject
         VpsUser = relay.User;
         VpsPort = relay.SshPort;
         VpsKeyPath = relay.KeyPath;
+        VpsUsePassword = string.Equals(relay.AuthMode, "password", StringComparison.OrdinalIgnoreCase);
+        VpsPassword = relay.Password;
         VpsRemotePort = relay.RemotePort;
 
         Refresh();
@@ -372,16 +380,27 @@ public partial class ServersViewModel : ObservableObject
         if (SelectedServer is null || IsRelayStarting)
             return;
 
-        if (string.IsNullOrWhiteSpace(VpsHost) || string.IsNullOrWhiteSpace(VpsKeyPath))
+        if (string.IsNullOrWhiteSpace(VpsHost))
         {
-            StatusText = "Enter your VPS address and the path to your SSH key first";
+            StatusText = "Enter your VPS address first";
             return;
         }
 
-        if (!File.Exists(VpsKeyPath))
+        if (VpsUsePassword)
         {
-            StatusText = "That SSH key file does not exist: " + VpsKeyPath;
-            return;
+            if (string.IsNullOrEmpty(VpsPassword))
+            {
+                StatusText = "Enter the root password for your VPS first";
+                return;
+            }
+        }
+        else
+        {
+            if (string.IsNullOrWhiteSpace(VpsKeyPath) || !File.Exists(VpsKeyPath))
+            {
+                StatusText = "Pick a valid SSH key file first, or switch to password";
+                return;
+            }
         }
 
         var server = SelectedServer;
@@ -393,7 +412,9 @@ public partial class ServersViewModel : ObservableObject
             Host = VpsHost.Trim(),
             User = string.IsNullOrWhiteSpace(VpsUser) ? "root" : VpsUser.Trim(),
             SshPort = VpsPort <= 0 ? 22 : VpsPort,
+            AuthMode = VpsUsePassword ? "password" : "key",
             KeyPath = VpsKeyPath.Trim(),
+            Password = VpsPassword,
             RemotePort = VpsRemotePort <= 0 ? 6969 : VpsRemotePort,
         };
 

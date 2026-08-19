@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.Formats.Tar;
 using System.IO.Compression;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Vesper.Core.Storage;
 
 namespace Vesper.Core.Servers;
@@ -49,6 +51,75 @@ public sealed class ServerJavaProvisioner
             .FirstOrDefault(p => Path.GetFileName(Path.GetDirectoryName(p)) == "bin");
     }
 
+    public string? FindInstalledJava(int major)
+    {
+        var cached = ExistingJava(major);
+
+        if (cached is not null)
+            return cached;
+
+        if (!Directory.Exists(_paths.RuntimeDir))
+            return null;
+
+        var name = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "java.exe" : "java";
+
+        foreach (var candidate in Directory.EnumerateFiles(_paths.RuntimeDir, name, SearchOption.AllDirectories))
+        {
+            if (Path.GetFileName(Path.GetDirectoryName(candidate)) != "bin")
+                continue;
+
+            if (DetectMajor(candidate) == major)
+                return candidate;
+        }
+
+        return null;
+    }
+
+    public static int DetectMajor(string javaPath)
+    {
+        try
+        {
+            var info = new ProcessStartInfo
+            {
+                FileName = javaPath,
+                RedirectStandardError = true,
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            };
+            info.ArgumentList.Add("-version");
+
+            using var process = Process.Start(info);
+
+            if (process is null)
+                return 0;
+
+            var text = process.StandardError.ReadToEnd() + process.StandardOutput.ReadToEnd();
+            process.WaitForExit(5000);
+
+            return ParseMajor(text);
+        }
+        catch (Exception)
+        {
+            return 0;
+        }
+    }
+
+    public static int ParseMajor(string versionOutput)
+    {
+        var match = Regex.Match(versionOutput, "version \"(\\d+)(?:\\.(\\d+))?");
+
+        if (!match.Success)
+            return 0;
+
+        var first = int.Parse(match.Groups[1].Value);
+
+        if (first == 1 && match.Groups[2].Success)
+            return int.Parse(match.Groups[2].Value);
+
+        return first;
+    }
+
     public static string DownloadUrl(int major)
     {
         var os = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "windows"
@@ -66,10 +137,10 @@ public sealed class ServerJavaProvisioner
         CancellationToken cancellationToken = default)
     {
         var major = RequiredMajor(minecraftVersion);
-        var existing = ExistingJava(major);
+        var installed = FindInstalledJava(major);
 
-        if (existing is not null)
-            return existing;
+        if (installed is not null)
+            return installed;
 
         var dir = JavaHomeDir(major);
         Directory.CreateDirectory(dir);
@@ -77,10 +148,22 @@ public sealed class ServerJavaProvisioner
         progress?.Report($"Downloading Java {major} to run Minecraft {minecraftVersion}");
 
         var url = DownloadUrl(major);
-        var bytes = await _http.GetByteArrayAsync(url, cancellationToken);
         var isZip = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         var archive = Path.Combine(dir, isZip ? "java.zip" : "java.tar.gz");
-        await File.WriteAllBytesAsync(archive, bytes, cancellationToken);
+
+        try
+        {
+            var bytes = await _http.GetByteArrayAsync(url, cancellationToken);
+            await File.WriteAllBytesAsync(archive, bytes, cancellationToken);
+        }
+        catch (HttpRequestException e)
+        {
+            throw new InvalidOperationException(
+                $"Java {major} is not installed and could not be downloaded ({e.Message}). " +
+                $"Launch any Minecraft {major switch { 8 => "1.16 or older", 17 => "1.17 to 1.20.4", _ => "1.20.5 or newer" }} " +
+                "version once so the launcher installs that Java, or check your internet connection, then start the server again.",
+                e);
+        }
 
         progress?.Report($"Extracting Java {major}");
 
