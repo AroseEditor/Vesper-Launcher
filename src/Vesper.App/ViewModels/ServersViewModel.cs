@@ -31,6 +31,10 @@ public partial class ServersViewModel : ObservableObject
     [ObservableProperty]
     private string _tunnelClaimUrl = string.Empty;
 
+    public ObservableCollection<string> TunnelLog { get; } = [];
+
+    public bool HasTunnelLog => TunnelLog.Count > 0;
+
     [ObservableProperty]
     private ServerDefinition? _selectedServer;
 
@@ -355,6 +359,18 @@ public partial class ServersViewModel : ObservableObject
                 StatusText = "Tunnel ready. Friends can join at " + address;
             });
 
+            _tunnel.Output += (_, line) => Dispatcher.UIThread.Post(() =>
+            {
+                TunnelLog.Add(line);
+
+                while (TunnelLog.Count > 300)
+                    TunnelLog.RemoveAt(0);
+
+                OnPropertyChanged(nameof(HasTunnelLog));
+            });
+
+            TunnelLog.Clear();
+            OnPropertyChanged(nameof(HasTunnelLog));
             var progress = new Progress<string>(m => StatusText = m);
             await _tunnel.StartAsync(progress);
         }

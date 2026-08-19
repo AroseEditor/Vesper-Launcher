@@ -37,10 +37,11 @@ public sealed partial class PlayitTunnel : IDisposable
         var arch = RuntimeInformation.OSArchitecture;
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return arch == Architecture.Arm64 ? "playit-windows-aarch64.exe" : "playit-windows-x86_64.exe";
+            return "playit-windows-x86_64.exe";
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return arch == Architecture.Arm64 ? "playit-darwin-aarch64" : "playit-darwin-intel";
+            throw new PlatformNotSupportedException(
+                "playit.gg has no official macOS build. Install it from playit.gg/download instead.");
 
         return arch == Architecture.Arm64 ? "playit-linux-aarch64" : "playit-linux-amd64";
     }
@@ -80,6 +81,9 @@ public sealed partial class PlayitTunnel : IDisposable
             UseShellExecute = false,
             CreateNoWindow = true,
         };
+
+        info.ArgumentList.Add("--stdout");
+        info.Environment["PLAYIT_SECRET_PATH"] = Path.Combine(BinaryDirectory, "playit.toml");
 
         var process = new Process { StartInfo = info, EnableRaisingEvents = true };
         process.OutputDataReceived += (_, e) => HandleLine(e.Data);
@@ -128,10 +132,14 @@ public sealed partial class PlayitTunnel : IDisposable
             TunnelAddressFound?.Invoke(this, address);
     }
 
+    private static readonly string[] InfraHosts =
+        ["api.", "control.", "ping.", "discover.", "agent.", "www."];
+
     public static string? ParseAddress(string line)
     {
         var host = TunnelHostRegex().Match(line);
-        if (host.Success)
+
+        if (host.Success && !InfraHosts.Any(p => host.Value.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
             return host.Value;
 
         var ipPort = IpPortRegex().Match(line);
@@ -156,10 +164,10 @@ public sealed partial class PlayitTunnel : IDisposable
         }
     }
 
-    [GeneratedRegex(@"https://playit\.gg/[^\s]+", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"https://playit\.gg/(?:claim|setup|mc)/[^\s]+", RegexOptions.IgnoreCase)]
     private static partial Regex ClaimRegex();
 
-    [GeneratedRegex(@"[a-z0-9-]+\.(?:craft\.)?(?:joinmc\.link|playit\.gg)(?::\d+)?", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"[a-z0-9-]+\.(?:joinmc\.link|craft\.playit\.gg)(?::\d+)?", RegexOptions.IgnoreCase)]
     private static partial Regex TunnelHostRegex();
 
     [GeneratedRegex(@"\b(?:\d{1,3}\.){3}\d{1,3}:\d{2,5}\b")]
