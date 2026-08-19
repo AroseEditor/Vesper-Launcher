@@ -21,9 +21,9 @@
             BorderBrush="{DynamicResource BorderSubtleBrush}"
             BorderThickness="0,0,0,1"
             PointerPressed="OnTitleBarPressed">
-      <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,140,0">
+      <Grid ColumnDefinitions="*,Auto,Auto">
 
-        <Button Grid.Column="2" Name="AccountButton" Classes="chrome"
+        <Button Grid.Column="1" Name="AccountButton" Classes="chrome"
                 Width="NaN" Padding="9,0" Margin="0,6,10,6"
                 Command="{Binding Accounts.TogglePopupCommand}">
           <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
@@ -52,7 +52,7 @@
           </StackPanel>
         </Button>
 
-        <StackPanel Grid.Column="3" Orientation="Horizontal">
+        <StackPanel Grid.Column="2" Orientation="Horizontal">
           <Button Name="ErrorButton" Classes="chrome" Command="{Binding Errors.ToggleCommand}"
                   IsVisible="{Binding Errors.HasErrors}" ToolTip.Tip="Errors">
             <Panel>
