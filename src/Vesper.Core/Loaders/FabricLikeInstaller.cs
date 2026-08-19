@@ -57,8 +57,10 @@ public abstract class FabricLikeInstaller : ILoaderInstaller
     public async Task<string> InstallAsync(
         string minecraftVersion,
         string loaderVersion,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IProgress<string>? progress = null)
     {
+        progress?.Report($"{Kind.DisplayName()} {loaderVersion}: writing profile");
         var url = $"{MetaRoot}/versions/loader/" +
                   $"{Uri.EscapeDataString(minecraftVersion)}/" +
                   $"{Uri.EscapeDataString(loaderVersion)}/profile/json";

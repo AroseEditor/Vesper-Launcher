@@ -27,7 +27,7 @@ public class VesperPathsTests
         var dir = root.Paths.ProfileDir("demo");
         Assert.StartsWith(dir, root.Paths.ProfileGameDir("demo"));
         Assert.StartsWith(dir, root.Paths.ProfileFile("demo"));
-        Assert.EndsWith(".minecraft", root.Paths.ProfileGameDir("demo"));
+        Assert.EndsWith(VesperPaths.GameDirName, root.Paths.ProfileGameDir("demo"));
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class VesperPathsTests
         var second = new VesperMinecraftPath(root.Paths, "two");
 
         Assert.NotEqual(first.BasePath, second.BasePath);
-        Assert.EndsWith(".minecraft", first.BasePath);
+        Assert.EndsWith(VesperPaths.GameDirName, first.BasePath);
     }
 
     [Fact]

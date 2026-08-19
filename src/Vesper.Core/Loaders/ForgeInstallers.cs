@@ -81,7 +81,8 @@ public sealed class ForgeInstaller : ILoaderInstaller
     public async Task<string> InstallAsync(
         string minecraftVersion,
         string loaderVersion,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IProgress<string>? progress = null)
     {
         var options = new CmlForge.ForgeInstallOptions
         {
@@ -89,8 +90,29 @@ public sealed class ForgeInstaller : ILoaderInstaller
             SkipIfAlreadyInstalled = true,
         };
 
+        if (progress is not null)
+        {
+            options.FileProgress = new Progress<CmlLib.Core.Installers.InstallerProgressChangedEventArgs>(
+                e => progress.Report(FormatFile("Forge " + loaderVersion, e)));
+            options.ByteProgress = new Progress<ByteProgress>(
+                e => progress.Report(FormatBytes("Forge " + loaderVersion, e)));
+            options.InstallerOutput = new Progress<string>(
+                line => progress.Report("Forge processor: " + line));
+        }
+
         return await Create().Install(minecraftVersion, loaderVersion, options);
     }
+
+    internal static string FormatFile(
+        string label, CmlLib.Core.Installers.InstallerProgressChangedEventArgs e) =>
+        e.TotalTasks > 0
+            ? $"{label}: {e.Name} ({e.ProgressedTasks}/{e.TotalTasks})"
+            : $"{label}: {e.Name}";
+
+    internal static string FormatBytes(string label, ByteProgress e) =>
+        e.TotalBytes > 0
+            ? $"{label}: downloading {e.ProgressedBytes / 1048576}/{e.TotalBytes / 1048576} MB"
+            : label + ": downloading";
 }
 
 public sealed class NeoForgeInstaller : ILoaderInstaller
@@ -150,7 +172,11 @@ public sealed class NeoForgeInstaller : ILoaderInstaller
     public async Task<string> InstallAsync(
         string minecraftVersion,
         string loaderVersion,
-        CancellationToken cancellationToken = default) =>
-        await Create().Install(minecraftVersion, loaderVersion);
+        CancellationToken cancellationToken = default,
+        IProgress<string>? progress = null)
+    {
+        progress?.Report($"NeoForge {loaderVersion}: downloading and installing");
+        return await Create().Install(minecraftVersion, loaderVersion);
+    }
 }
 

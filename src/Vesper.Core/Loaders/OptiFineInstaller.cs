@@ -30,7 +30,8 @@ public sealed class OptiFineInstaller : ILoaderInstaller
     public Task<string> InstallAsync(
         string minecraftVersion,
         string loaderVersion,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IProgress<string>? progress = null)
     {
         var existing = FindInstalledVersions(minecraftVersion)
             .FirstOrDefault(id => id == loaderVersion);

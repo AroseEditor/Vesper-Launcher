@@ -305,8 +305,9 @@ public partial class PlayViewModel : ObservableObject
                 }
 
                 StatusText = $"Installing {profile.Loader.DisplayName()} {loaderVersion}";
+                var installProgress = new Progress<string>(m => StatusText = m);
                 profile.LaunchVersionId = await _loaders.For(profile.Loader)
-                    .InstallAsync(profile.MinecraftVersion, loaderVersion, cancellationToken);
+                    .InstallAsync(profile.MinecraftVersion, loaderVersion, cancellationToken, installProgress);
             }
 
             if (Category == VersionCategory.Vesper)

@@ -18,7 +18,8 @@ public interface ILoaderInstaller
     Task<string> InstallAsync(
         string minecraftVersion,
         string loaderVersion,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        IProgress<string>? progress = null);
 }
 
 public sealed class LoaderNotSupportedException : Exception
