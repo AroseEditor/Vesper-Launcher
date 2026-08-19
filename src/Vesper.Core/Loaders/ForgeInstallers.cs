@@ -1,5 +1,6 @@
 using CmlLib.Core;
 using Vesper.Core.Profiles;
+using Vesper.Core.Servers;
 using Vesper.Core.Storage;
 using CmlForge = CmlLib.Core.Installer.Forge;
 using CmlNeoForge = CmlLib.Core.Installer.NeoForge;
@@ -86,6 +87,12 @@ public sealed class ForgeInstaller : ILoaderInstaller
             CancellationToken = cancellationToken,
             SkipIfAlreadyInstalled = true,
         };
+
+        var java = new ServerJavaProvisioner(_paths)
+            .FindInstalledJava(ServerJavaProvisioner.RequiredMajor(minecraftVersion));
+
+        if (java is not null)
+            options.JavaPath = java;
 
         if (progress is not null)
         {

@@ -71,10 +71,7 @@ public sealed class ServerManager
 
     public void Delete(string id)
     {
-        var directory = DirectoryFor(id);
-
-        if (System.IO.Directory.Exists(directory))
-            System.IO.Directory.Delete(directory, recursive: true);
+        DirectoryCleaner.Delete(DirectoryFor(id));
     }
 
     public string DirectoryFor(string id) => _paths.ServerDir(id);

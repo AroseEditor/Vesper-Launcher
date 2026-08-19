@@ -82,9 +82,7 @@ public sealed class ProfileManager
 
     public void Delete(string id)
     {
-        var dir = _paths.ProfileDir(id);
-        if (Directory.Exists(dir))
-            Directory.Delete(dir, recursive: true);
+        DirectoryCleaner.Delete(_paths.ProfileDir(id));
     }
 
     private string AllocateId(string name)
