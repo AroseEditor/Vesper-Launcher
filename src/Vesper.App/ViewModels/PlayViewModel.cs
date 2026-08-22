@@ -440,11 +440,29 @@ public partial class PlayViewModel : ObservableObject
         return major > 1 || minor >= 21;
     }
 
+    public bool EnhancedUnavailable =>
+        Category == VersionCategory.Vesper &&
+        SelectedVersion is not null &&
+        !EnhancedClient.Supports(SelectedVersion.Id);
+
+    public string EnhancedHint =>
+        "The Enhanced client supports " + string.Join(", ", EnhancedClient.SupportedVersions) +
+        ". Pick one of those versions to use it.";
+
     private void RebuildLoaderOptions()
     {
-        var desired = Category == VersionCategory.Vesper
-            ? new[] { LoaderKind.Fabric, LoaderKind.NeoForge }
-            : Enum.GetValues<LoaderKind>();
+        LoaderKind[] desired;
+
+        if (Category == VersionCategory.Vesper)
+        {
+            desired = SelectedVersion is not null && !EnhancedClient.Supports(SelectedVersion.Id)
+                ? []
+                : [LoaderKind.Fabric, LoaderKind.NeoForge];
+        }
+        else
+        {
+            desired = Enum.GetValues<LoaderKind>();
+        }
 
         var previous = SelectedLoader;
 
@@ -517,6 +535,7 @@ public partial class PlayViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsVanilla));
         OnPropertyChanged(nameof(IsVesper));
+        OnPropertyChanged(nameof(EnhancedUnavailable));
         OnPropertyChanged(nameof(CategoryBlurb));
         RebuildCards();
         RebuildLoaderOptions();
@@ -538,6 +557,8 @@ public partial class PlayViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(HasSelection));
         OnPropertyChanged(nameof(SelectedSummary));
+        OnPropertyChanged(nameof(EnhancedUnavailable));
+        RebuildLoaderOptions();
         _ = RefreshLoaderVersionsAsync();
     }
 
