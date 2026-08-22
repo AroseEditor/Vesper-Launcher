@@ -46,7 +46,10 @@ public final class VesperClient {
     }
 
     private static EventResult onMouseClicked(Minecraft client, int button, int action, int mods) {
-        if (action == 1 && VesperMod.config().enabled(VesperModule.CPS_DISPLAY)) {
+        boolean tracking = VesperMod.config().enabled(VesperModule.CPS_DISPLAY)
+                || VesperMod.config().enabled(VesperModule.KEYSTROKES);
+
+        if (action == 1 && tracking) {
             if (button == 0) {
                 VesperHud.recordClick(true);
             } else if (button == 1) {

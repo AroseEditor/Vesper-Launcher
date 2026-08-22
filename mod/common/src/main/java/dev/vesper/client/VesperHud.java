@@ -96,6 +96,49 @@ public final class VesperHud {
                     .orElse("unknown");
             line(graphics, client, x, y, biome, TEXT);
         }
+
+        if (config.enabled(VesperModule.KEYSTROKES)) {
+            renderKeystrokes(graphics, client);
+        }
+    }
+
+    private static void renderKeystrokes(GuiGraphics graphics, Minecraft client) {
+        var options = client.options;
+        int size = 20;
+        int gap = 2;
+        int baseX = 4;
+        int baseY = client.getWindow().getGuiScaledHeight() / 2 - 40;
+        int total = size * 3 + gap * 2;
+
+        keyBox(graphics, client, baseX + size + gap, baseY, size, size, "W", options.keyUp.isDown());
+
+        int row2 = baseY + size + gap;
+        keyBox(graphics, client, baseX, row2, size, size, "A", options.keyLeft.isDown());
+        keyBox(graphics, client, baseX + size + gap, row2, size, size, "S", options.keyDown.isDown());
+        keyBox(graphics, client, baseX + (size + gap) * 2, row2, size, size, "D", options.keyRight.isDown());
+
+        int mouseRow = row2 + size + gap;
+        int half = (total - gap) / 2;
+        keyBox(graphics, client, baseX, mouseRow, half, size,
+                "LMB " + clicksWithinLastSecond(leftClicks), options.keyAttack.isDown());
+        keyBox(graphics, client, baseX + half + gap, mouseRow, half, size,
+                "RMB " + clicksWithinLastSecond(rightClicks), options.keyUse.isDown());
+
+        int spaceRow = mouseRow + size + gap;
+        keyBox(graphics, client, baseX, spaceRow, total, 12, "", options.keyJump.isDown());
+    }
+
+    private static void keyBox(
+            GuiGraphics graphics, Minecraft client,
+            int x, int y, int w, int h, String label, boolean pressed) {
+
+        graphics.fill(x, y, x + w, y + h, pressed ? ACCENT : 0x66000000);
+
+        if (!label.isEmpty()) {
+            int tx = x + (w - client.font.width(label)) / 2;
+            int ty = y + (h - 8) / 2;
+            graphics.drawString(client.font, label, tx, ty, pressed ? 0xFF14141A : TEXT);
+        }
     }
 
     private static int line(
