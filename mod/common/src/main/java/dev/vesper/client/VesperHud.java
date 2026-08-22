@@ -127,6 +127,11 @@ public final class VesperHud {
             text(graphics, client, HudModule.BIOME, biome, TEXT);
         }
 
+        if (config.enabled(VesperModule.DAY_DISPLAY)) {
+            long day = client.level.getDayTime() / 24000L + 1L;
+            text(graphics, client, HudModule.DAY, "Day " + day, TEXT);
+        }
+
         if (config.enabled(VesperModule.KEYSTROKES)) {
             renderKeystrokes(graphics, client);
         }

@@ -13,6 +13,7 @@ public enum HudModule {
     MEMORY("Memory", false),
     REACH("Reach", false),
     SERVER("Server address", false),
+    DAY("Day", false),
     POTIONS("Potion effects", false);
 
     private final String label;

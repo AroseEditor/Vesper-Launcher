@@ -57,6 +57,8 @@ public enum VesperModule {
             "Shows the real world clock and the in-game day."),
     BIOME_DISPLAY("Biome", ModuleCategory.HUD, false,
             "Shows the biome you are standing in."),
+    DAY_DISPLAY("Day", ModuleCategory.HUD, false,
+            "Shows the current in-game day number."),
     POTION_EFFECTS("Potion effects", ModuleCategory.HUD, false,
             "Lists active potion effects with their level and remaining time."),
     SERVER_ADDRESS("Server address", ModuleCategory.HUD, false,
