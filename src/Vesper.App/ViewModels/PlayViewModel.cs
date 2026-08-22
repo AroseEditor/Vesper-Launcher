@@ -16,7 +16,7 @@ public enum VersionCategory
     Vesper,
 }
 
-public sealed record LoaderChoice(LoaderKind Kind, string Label);
+public sealed record LoaderChoice(LoaderKind Kind, bool IsEnhanced, string Label);
 
 public partial class PlayViewModel : ObservableObject
 {
@@ -229,7 +229,7 @@ public partial class PlayViewModel : ObservableObject
             mcVersion,
             EffectiveLoader,
             SelectedLoaderVersion?.Version,
-            Category == VersionCategory.Vesper);
+            SelectedLoaderChoice?.IsEnhanced ?? false);
 
         RefreshProfiles();
         SelectedProfile = Profiles.FirstOrDefault(p => p.Id == profile.Id);
@@ -446,9 +446,7 @@ public partial class PlayViewModel : ObservableObject
     }
 
     public bool EnhancedUnavailable =>
-        Category == VersionCategory.Vesper &&
-        SelectedVersion is not null &&
-        !EnhancedClient.Supports(SelectedVersion.Id);
+        SelectedVersion is not null && !EnhancedClient.Supports(SelectedVersion.Id);
 
     public string EnhancedHint =>
         "The Enhanced client supports " + string.Join(", ", EnhancedClient.SupportedVersions) +
@@ -456,33 +454,24 @@ public partial class PlayViewModel : ObservableObject
 
     private void RebuildLoaderOptions()
     {
-        LoaderKind[] desired;
-
-        if (Category == VersionCategory.Vesper)
-        {
-            desired = SelectedVersion is not null && !EnhancedClient.Supports(SelectedVersion.Id)
-                ? []
-                : [LoaderKind.Fabric, LoaderKind.NeoForge];
-        }
-        else
-        {
-            desired = Enum.GetValues<LoaderKind>();
-        }
-
-        var previous = SelectedLoader;
+        var previousKind = SelectedLoaderChoice?.Kind ?? SelectedLoader;
+        var previousEnhanced = SelectedLoaderChoice?.IsEnhanced ?? false;
 
         AvailableLoaders.Clear();
-        foreach (var kind in desired)
-            AvailableLoaders.Add(new LoaderChoice(kind, LoaderLabel(kind)));
 
-        SelectedLoaderChoice = AvailableLoaders.FirstOrDefault(c => c.Kind == previous)
+        foreach (var kind in Enum.GetValues<LoaderKind>())
+            AvailableLoaders.Add(new LoaderChoice(kind, false, kind.DisplayName()));
+
+        if (SelectedVersion is not null && EnhancedClient.Supports(SelectedVersion.Id))
+        {
+            foreach (var kind in new[] { LoaderKind.Fabric, LoaderKind.NeoForge })
+                AvailableLoaders.Add(new LoaderChoice(kind, true, "Enhanced (" + kind.DisplayName() + ")"));
+        }
+
+        SelectedLoaderChoice =
+            AvailableLoaders.FirstOrDefault(c => c.Kind == previousKind && c.IsEnhanced == previousEnhanced)
             ?? AvailableLoaders.FirstOrDefault();
     }
-
-    private string LoaderLabel(LoaderKind kind) =>
-        Category == VersionCategory.Vesper
-            ? "Enhanced (" + kind.DisplayName() + ")"
-            : kind.DisplayName();
 
     private async Task RefreshLoaderVersionsAsync()
     {
