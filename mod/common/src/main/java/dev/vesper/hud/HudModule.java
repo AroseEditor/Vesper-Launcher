@@ -12,7 +12,8 @@ public enum HudModule {
     BIOME("Biome", false),
     MEMORY("Memory", false),
     REACH("Reach", false),
-    SERVER("Server address", false);
+    SERVER("Server address", false),
+    POTIONS("Potion effects", false);
 
     private final String label;
     private final boolean enabledByDefault;

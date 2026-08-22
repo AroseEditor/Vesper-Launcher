@@ -141,15 +141,16 @@ public final class VesperHud {
     }
 
     private static void renderArmourStatus(GuiGraphics graphics, Minecraft client) {
-        int right = client.getWindow().getGuiScaledWidth() - 20;
-        int y = client.getWindow().getGuiScaledHeight() / 2 - 52;
+        HudElement anchor = VesperMod.config().element(HudModule.ARMOUR);
+        int x = anchor.x;
+        int y = anchor.y;
 
-        renderArmourPiece(graphics, client, client.player.getMainHandItem(), right, y);
+        renderArmourPiece(graphics, client, client.player.getMainHandItem(), x, y);
         y += 20;
 
         var armour = client.player.getInventory().armor;
         for (int slot = armour.size() - 1; slot >= 0; slot--) {
-            renderArmourPiece(graphics, client, armour.get(slot), right, y);
+            renderArmourPiece(graphics, client, armour.get(slot), x, y);
             y += 20;
         }
     }
@@ -165,14 +166,14 @@ public final class VesperHud {
 
         if (stack.isDamageableItem()) {
             String durability = String.valueOf(stack.getMaxDamage() - stack.getDamageValue());
-            graphics.drawString(
-                    client.font, durability, x - client.font.width(durability) - 3, y + 5, TEXT);
+            graphics.drawString(client.font, durability, x + 20, y + 5, TEXT);
         }
     }
 
     private static void renderPotionEffects(GuiGraphics graphics, Minecraft client) {
-        int right = client.getWindow().getGuiScaledWidth() - 4;
-        int y = 4;
+        HudElement anchor = VesperMod.config().element(HudModule.POTIONS);
+        int x = anchor.x;
+        int y = anchor.y;
 
         for (MobEffectInstance effect : client.player.getActiveEffects()) {
             String name = effect.getEffect().value().getDisplayName().getString();
@@ -186,8 +187,7 @@ public final class VesperHud {
                     ? name
                     : name + " " + formatTicks(effect.getDuration());
 
-            graphics.drawString(
-                    client.font, duration, right - client.font.width(duration), y, TEXT);
+            graphics.drawString(client.font, duration, x, y, TEXT);
             y += LINE_HEIGHT;
         }
     }
@@ -199,10 +199,11 @@ public final class VesperHud {
 
     private static void renderKeystrokes(GuiGraphics graphics, Minecraft client) {
         var options = client.options;
+        HudElement anchor = VesperMod.config().element(HudModule.KEYSTROKES);
         int size = 20;
         int gap = 2;
-        int baseX = 4;
-        int baseY = client.getWindow().getGuiScaledHeight() / 2 - 40;
+        int baseX = anchor.x;
+        int baseY = anchor.y;
         int total = size * 3 + gap * 2;
 
         keyBox(graphics, client, baseX + size + gap, baseY, size, size, "W", options.keyUp.isDown());
