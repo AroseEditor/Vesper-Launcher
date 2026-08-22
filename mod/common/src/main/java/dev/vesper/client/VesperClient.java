@@ -106,14 +106,12 @@ public final class VesperClient {
             return;
         }
 
-        int width = 204;
-        int x = screen.width / 2 - width / 2;
-        int y = Math.min(screen.height / 4 + 144, screen.height - 28);
+        int width = 120;
 
         access.addRenderableWidget(Button.builder(
-                        Component.literal("Vesper Settings"),
+                        Component.literal("Vesper Menu"),
                         button -> Minecraft.getInstance().setScreen(new VesperScreen()))
-                .bounds(x, y, width, 20)
+                .bounds(screen.width - width - 6, 6, width, 20)
                 .build());
     }
 
