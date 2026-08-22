@@ -42,3 +42,22 @@ jobs:
 
       - name: Check for comments and emoji
         run: python scripts/check_conventions.py
+
+  mod:
+    name: Vesper mod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Build mod
+        working-directory: mod
+        run: gradle build -Penabled_platforms=fabric,neoforge --no-daemon --stacktrace

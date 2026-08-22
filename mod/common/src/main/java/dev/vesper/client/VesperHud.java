@@ -10,6 +10,8 @@ import net.minecraft.client.gui.GuiGraphics;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class VesperHud {
 
@@ -18,9 +20,8 @@ public final class VesperHud {
     private static final int LINE_HEIGHT = 11;
     private static final DateTimeFormatter CLOCK = DateTimeFormatter.ofPattern("HH:mm");
 
-    private static long lastClickWindow;
-    private static int clicksThisWindow;
-    private static int clicksPerSecond;
+    private static final List<Long> leftClicks = new ArrayList<>();
+    private static final List<Long> rightClicks = new ArrayList<>();
 
     private VesperHud() {
     }
@@ -29,16 +30,14 @@ public final class VesperHud {
         ClientGuiEvent.RENDER_HUD.register(VesperHud::render);
     }
 
-    public static void recordClick() {
-        long now = System.currentTimeMillis();
+    public static void recordClick(boolean left) {
+        (left ? leftClicks : rightClicks).add(System.currentTimeMillis());
+    }
 
-        if (now - lastClickWindow >= 1000L) {
-            clicksPerSecond = clicksThisWindow;
-            clicksThisWindow = 0;
-            lastClickWindow = now;
-        }
-
-        clicksThisWindow++;
+    private static int clicksWithinLastSecond(List<Long> clicks) {
+        long cutoff = System.currentTimeMillis() - 1000L;
+        clicks.removeIf(time -> time < cutoff);
+        return clicks.size();
     }
 
     private static void render(GuiGraphics graphics, DeltaTracker delta) {
@@ -73,7 +72,9 @@ public final class VesperHud {
         }
 
         if (config.enabled(VesperModule.CPS_DISPLAY)) {
-            y = line(graphics, client, x, y, clicksPerSecond + " cps", TEXT);
+            String cps = clicksWithinLastSecond(leftClicks) + " | "
+                    + clicksWithinLastSecond(rightClicks) + " cps";
+            y = line(graphics, client, x, y, cps, TEXT);
         }
 
         if (config.enabled(VesperModule.MEMORY_DISPLAY)) {

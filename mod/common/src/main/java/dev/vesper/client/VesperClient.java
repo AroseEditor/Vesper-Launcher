@@ -1,11 +1,14 @@
 package dev.vesper.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientGuiEvent;
+import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.events.client.ClientTickEvent;
 import dev.architectury.hooks.client.screen.ScreenAccess;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import dev.vesper.VesperMod;
+import dev.vesper.module.VesperModule;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
@@ -38,7 +41,20 @@ public final class VesperClient {
 
         ClientTickEvent.CLIENT_POST.register(VesperClient::onClientTick);
         ClientGuiEvent.INIT_POST.register(VesperClient::onScreenInit);
+        ClientRawInputEvent.MOUSE_CLICKED_PRE.register(VesperClient::onMouseClicked);
         VesperHud.init();
+    }
+
+    private static EventResult onMouseClicked(Minecraft client, int button, int action, int mods) {
+        if (action == 1 && VesperMod.config().enabled(VesperModule.CPS_DISPLAY)) {
+            if (button == 0) {
+                VesperHud.recordClick(true);
+            } else if (button == 1) {
+                VesperHud.recordClick(false);
+            }
+        }
+
+        return EventResult.pass();
     }
 
     public static KeyMapping menuKey() {
