@@ -238,9 +238,10 @@ public final class VesperHud {
     }
 
     private static void text(
-            GuiGraphics graphics, Minecraft client, HudModule module, String value, int colour) {
+            GuiGraphics graphics, Minecraft client, HudModule module, String value, int fallback) {
 
         HudElement element = VesperMod.config().element(module);
+        int colour = element.colour != 0 ? element.colour : fallback;
 
         if (element.scale == 1f) {
             graphics.drawString(client.font, value, element.x, element.y, colour);

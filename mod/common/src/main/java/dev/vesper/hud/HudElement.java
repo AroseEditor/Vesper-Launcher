@@ -6,7 +6,7 @@ public final class HudElement {
     public int y;
     public float scale;
     public boolean enabled;
-    public int colour = 0xFFB57EDC;
+    public int colour = 0;
     public boolean shadow = true;
 
     public HudElement(int x, int y, float scale, boolean enabled) {

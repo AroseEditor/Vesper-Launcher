@@ -13,6 +13,10 @@ public final class VesperHudEditScreen extends Screen {
 
     private static final int LINE_HEIGHT = 10;
 
+    private static final int[] PALETTE = {
+        0, 0xFFF2EEF6, 0xFF1FC7FF, 0xFF3FD07A, 0xFFFFC842, 0xFFFF4D4F, 0xFFB57EDC,
+    };
+
     private final Screen parent;
     private HudModule dragging;
     private int dragOffsetX;
@@ -40,7 +44,7 @@ public final class VesperHudEditScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
 
         graphics.drawCenteredString(font,
-                "Drag to move, scroll to resize. Right Shift or Done to finish.",
+                "Drag to move, scroll to resize, right-click to recolour. Right Shift or Done to finish.",
                 width / 2, 12, 0xFFB57EDC);
 
         VesperConfig config = VesperMod.config();
@@ -54,14 +58,17 @@ public final class VesperHudEditScreen extends Screen {
             graphics.fill(element.x - 2, element.y - 2,
                     element.x + textWidth + 2, element.y + LINE_HEIGHT + 1,
                     active ? 0xCCB57EDC : 0x88000000);
-            graphics.drawString(font, label, element.x, element.y,
-                    active ? 0xFF14141A : 0xFFF2EEF6);
+
+            int labelColour = active
+                    ? 0xFF14141A
+                    : element.colour != 0 ? element.colour : 0xFFF2EEF6;
+            graphics.drawString(font, label, element.x, element.y, labelColour);
         }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0) {
+        if (button == 0 || button == 1) {
             VesperConfig config = VesperMod.config();
             HudModule[] modules = HudModule.values();
 
@@ -71,6 +78,11 @@ public final class VesperHudEditScreen extends Screen {
 
                 if (element.contains((int) mouseX, (int) mouseY,
                         font.width(module.label()), LINE_HEIGHT)) {
+                    if (button == 1) {
+                        element.colour = nextColour(element.colour);
+                        return true;
+                    }
+
                     dragging = module;
                     dragOffsetX = (int) mouseX - element.x;
                     dragOffsetY = (int) mouseY - element.y;
@@ -80,6 +92,16 @@ public final class VesperHudEditScreen extends Screen {
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    private static int nextColour(int current) {
+        for (int i = 0; i < PALETTE.length; i++) {
+            if (PALETTE[i] == current) {
+                return PALETTE[(i + 1) % PALETTE.length];
+            }
+        }
+
+        return PALETTE[0];
     }
 
     @Override
