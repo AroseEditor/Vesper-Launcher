@@ -6,6 +6,7 @@ import dev.vesper.module.VesperModule;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleEngine;
 import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.TerrainParticle;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -26,6 +27,11 @@ public class ParticleEngineMixin {
     @Inject(method = "add", at = @At("HEAD"), cancellable = true)
     private void vesper$limitParticles(Particle particle, CallbackInfo callback) {
         VesperConfig config = VesperMod.config();
+
+        if (config.enabled(VesperModule.NO_BLOCK_PARTICLES) && particle instanceof TerrainParticle) {
+            callback.cancel();
+            return;
+        }
 
         if (!config.enabled(VesperModule.PARTICLE_LIMIT)) {
             return;
