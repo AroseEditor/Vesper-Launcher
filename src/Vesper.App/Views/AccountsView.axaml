@@ -1,0 +1,90 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Vesper.App.ViewModels"
+             xmlns:ctrl="using:Vesper.App.Controls"
+             xmlns:acct="using:Vesper.Core.Accounts"
+             x:Class="Vesper.App.Views.AccountsView"
+             x:DataType="vm:AccountsViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="30,26" Spacing="18" MaxWidth="720" HorizontalAlignment="Left">
+
+      <StackPanel Spacing="6">
+        <TextBlock Classes="title" Text="Accounts" />
+        <TextBlock Classes="subtitle"
+                   Text="Sign in with Microsoft, or add a local account to play offline." />
+      </StackPanel>
+
+      <StackPanel Orientation="Horizontal" Spacing="10">
+        <Button Classes="primary" Padding="18,10" Content="Add Microsoft account"
+                IsEnabled="{Binding !IsSigningIn}"
+                Command="{Binding AddMicrosoftCommand}" />
+        <Button Classes="ghost" Padding="18,10" Content="Add local account"
+                Command="{Binding BeginAddLocalCommand}" />
+      </StackPanel>
+
+      <Border Classes="card" IsVisible="{Binding IsAddingLocal}">
+        <StackPanel Spacing="10">
+          <TextBlock Classes="label" Text="LOCAL USERNAME" />
+          <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+            <TextBox Grid.Column="0" Classes="field" PlaceholderText="Username"
+                     Text="{Binding NewLocalUsername, Mode=TwoWay}" />
+            <Button Grid.Column="1" Classes="primary" Padding="16,8" Content="Add"
+                    Command="{Binding ConfirmAddLocalCommand}" />
+            <Button Grid.Column="2" Classes="ghost" Padding="16,8" Content="Cancel"
+                    Command="{Binding CancelAddLocalCommand}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding HasDeviceCode}">
+        <StackPanel Spacing="9">
+          <TextBlock Classes="label" Text="MICROSOFT SIGN-IN" />
+          <TextBlock Classes="subtitle" FontSize="12" TextWrapping="Wrap"
+                     Text="Enter this code on the Microsoft page that opened:" />
+          <SelectableTextBlock Text="{Binding DeviceCode}" FontSize="22" FontWeight="Bold"
+                               Foreground="{DynamicResource AccentBrush}" />
+          <StackPanel Orientation="Horizontal" Spacing="9">
+            <Button Classes="ghost" Padding="14,7" Content="Copy code"
+                    Command="{Binding CopyCodeCommand}" />
+            <Button Classes="ghost" Padding="14,7" Content="Open page"
+                    Command="{Binding OpenVerificationPageCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <TextBlock Classes="subtitle" FontSize="12" TextWrapping="Wrap"
+                 Text="{Binding StatusMessage}"
+                 IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}" />
+
+      <TextBlock Classes="subtitle" Text="No accounts yet." IsVisible="{Binding !HasAccounts}" />
+
+      <ItemsControl ItemsSource="{Binding Accounts}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="acct:Account">
+            <Border Classes="card" Padding="12" Margin="0,0,0,10">
+              <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                <Image Grid.Column="0" Width="34" Height="34"
+                       RenderOptions.BitmapInterpolationMode="None"
+                       Source="{Binding Converter={x:Static ctrl:AccountAvatarConverter.Instance}}" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="12,0" Spacing="2">
+                  <TextBlock Text="{Binding Username}" FontSize="13.5" FontWeight="SemiBold"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding Kind}" FontSize="11"
+                             Foreground="{DynamicResource TextFaintBrush}" />
+                </StackPanel>
+                <Button Grid.Column="2" Classes="ghost" Padding="14,7" Content="Use"
+                        Command="{Binding $parent[ItemsControl].((vm:AccountsViewModel)DataContext).SelectAccountCommand}"
+                        CommandParameter="{Binding}" />
+                <Button Grid.Column="3" Classes="ghost" Padding="14,7" Margin="8,0,0,0" Content="Remove"
+                        Command="{Binding $parent[ItemsControl].((vm:AccountsViewModel)DataContext).RemoveAccountCommand}"
+                        CommandParameter="{Binding}" />
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

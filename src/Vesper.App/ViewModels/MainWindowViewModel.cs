@@ -16,6 +16,7 @@ public enum NavTab
     Play,
     Skins,
     Servers,
+    Accounts,
     Settings,
 }
 
@@ -87,6 +88,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     public bool IsServersTab => SelectedTab == NavTab.Servers;
 
+    public bool IsAccountsTab => SelectedTab == NavTab.Accounts;
+
     public bool IsSettingsTab => SelectedTab == NavTab.Settings;
 
     public string StatusText => Play.StatusText;
@@ -116,6 +119,7 @@ public partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsPlayTab));
         OnPropertyChanged(nameof(IsSkinsTab));
         OnPropertyChanged(nameof(IsServersTab));
+        OnPropertyChanged(nameof(IsAccountsTab));
         OnPropertyChanged(nameof(IsSettingsTab));
 
         CurrentPage = value switch
@@ -123,6 +127,7 @@ public partial class MainWindowViewModel : ObservableObject
             NavTab.Play => Play,
             NavTab.Skins => Skins,
             NavTab.Servers => Servers,
+            NavTab.Accounts => Accounts,
             NavTab.Settings => Settings,
             _ => Play,
         };
