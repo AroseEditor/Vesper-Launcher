@@ -61,3 +61,15 @@ jobs:
       - name: Build mod
         working-directory: mod
         run: gradle build -Penabled_platforms=fabric,neoforge --no-daemon --stacktrace
+
+      - name: Stage mod jars
+        run: |
+          mkdir -p mod-dist
+          cp mod/fabric/build/libs/*-fabric.jar mod-dist/vesper-fabric.jar
+          cp mod/neoforge/build/libs/*-neoforge.jar mod-dist/vesper-neoforge.jar
+          ls -la mod-dist
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: vesper-mod
+          path: mod-dist/*
