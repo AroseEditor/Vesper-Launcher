@@ -7,6 +7,8 @@ import dev.vesper.module.VesperModule;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.item.ItemStack;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -100,6 +102,71 @@ public final class VesperHud {
         if (config.enabled(VesperModule.KEYSTROKES)) {
             renderKeystrokes(graphics, client);
         }
+
+        if (config.enabled(VesperModule.ARMOUR_DISPLAY)) {
+            renderArmourStatus(graphics, client);
+        }
+
+        if (config.enabled(VesperModule.POTION_EFFECTS)) {
+            renderPotionEffects(graphics, client);
+        }
+    }
+
+    private static void renderArmourStatus(GuiGraphics graphics, Minecraft client) {
+        int right = client.getWindow().getGuiScaledWidth() - 20;
+        int y = client.getWindow().getGuiScaledHeight() / 2 - 52;
+
+        renderArmourPiece(graphics, client, client.player.getMainHandItem(), right, y);
+        y += 20;
+
+        var armour = client.player.getInventory().armor;
+        for (int slot = armour.size() - 1; slot >= 0; slot--) {
+            renderArmourPiece(graphics, client, armour.get(slot), right, y);
+            y += 20;
+        }
+    }
+
+    private static void renderArmourPiece(
+            GuiGraphics graphics, Minecraft client, ItemStack stack, int x, int y) {
+
+        if (stack.isEmpty()) {
+            return;
+        }
+
+        graphics.renderItem(stack, x, y);
+
+        if (stack.isDamageableItem()) {
+            String durability = String.valueOf(stack.getMaxDamage() - stack.getDamageValue());
+            graphics.drawString(
+                    client.font, durability, x - client.font.width(durability) - 3, y + 5, TEXT);
+        }
+    }
+
+    private static void renderPotionEffects(GuiGraphics graphics, Minecraft client) {
+        int right = client.getWindow().getGuiScaledWidth() - 4;
+        int y = 4;
+
+        for (MobEffectInstance effect : client.player.getActiveEffects()) {
+            String name = effect.getEffect().value().getDisplayName().getString();
+            int level = effect.getAmplifier() + 1;
+
+            if (level > 1) {
+                name = name + " " + level;
+            }
+
+            String duration = effect.isInfiniteDuration()
+                    ? name
+                    : name + " " + formatTicks(effect.getDuration());
+
+            graphics.drawString(
+                    client.font, duration, right - client.font.width(duration), y, TEXT);
+            y += LINE_HEIGHT;
+        }
+    }
+
+    private static String formatTicks(int ticks) {
+        int seconds = ticks / 20;
+        return String.format("%d:%02d", seconds / 60, seconds % 60);
     }
 
     private static void renderKeystrokes(GuiGraphics graphics, Minecraft client) {

@@ -55,6 +55,8 @@ public enum VesperModule {
             "Shows the real world clock and the in-game day."),
     BIOME_DISPLAY("Biome", ModuleCategory.HUD, false,
             "Shows the biome you are standing in."),
+    POTION_EFFECTS("Potion effects", ModuleCategory.HUD, false,
+            "Lists active potion effects with their level and remaining time."),
 
     TOGGLE_SPRINT("Toggle sprint", ModuleCategory.QUALITY_OF_LIFE, false,
             "Sprint stays on until you press the key again."),
