@@ -458,14 +458,18 @@ public partial class PlayViewModel : ObservableObject
         var previousEnhanced = SelectedLoaderChoice?.IsEnhanced ?? false;
 
         AvailableLoaders.Clear();
-
-        foreach (var kind in Enum.GetValues<LoaderKind>())
-            AvailableLoaders.Add(new LoaderChoice(kind, false, kind.DisplayName()));
+        AvailableLoaders.Add(new LoaderChoice(LoaderKind.Vanilla, false, LoaderKind.Vanilla.DisplayName()));
 
         if (SelectedVersion is not null && EnhancedClient.Supports(SelectedVersion.Id))
         {
             foreach (var kind in new[] { LoaderKind.Fabric, LoaderKind.NeoForge })
                 AvailableLoaders.Add(new LoaderChoice(kind, true, "Enhanced (" + kind.DisplayName() + ")"));
+        }
+
+        foreach (var kind in Enum.GetValues<LoaderKind>())
+        {
+            if (kind != LoaderKind.Vanilla)
+                AvailableLoaders.Add(new LoaderChoice(kind, false, kind.DisplayName()));
         }
 
         SelectedLoaderChoice =
