@@ -106,6 +106,10 @@ public final class VesperHud {
             y = line(graphics, client, x, y, String.format("%.2f blocks", lastReach), TEXT);
         }
 
+        if (config.enabled(VesperModule.SERVER_ADDRESS) && client.getCurrentServer() != null) {
+            y = line(graphics, client, x, y, client.getCurrentServer().ip, TEXT);
+        }
+
         if (config.enabled(VesperModule.MEMORY_DISPLAY)) {
             Runtime runtime = Runtime.getRuntime();
             long used = (runtime.totalMemory() - runtime.freeMemory()) / 1048576L;
