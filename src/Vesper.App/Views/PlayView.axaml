@@ -81,6 +81,11 @@
               </StackPanel>
             </Grid>
 
+            <TextBlock Classes="subtitle" FontSize="11.5" TextWrapping="Wrap"
+                       Foreground="{DynamicResource WarningBrush}"
+                       Text="{Binding EnhancedHint}"
+                       IsVisible="{Binding EnhancedUnavailable}"/>
+
             <StackPanel Orientation="Horizontal" Spacing="10" HorizontalAlignment="Right" Margin="0,6,0,0">
               <Button Classes="ghost" Padding="16,8" Content="Cancel"
                       Command="{Binding CancelCreateProfileCommand}"/>
