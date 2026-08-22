@@ -29,7 +29,18 @@ public final class VesperClient {
     private static KeyMapping zoomKey;
     private static Double savedGamma;
 
+    private static boolean sprintToggled;
+    private static boolean sneakToggled;
+
     private VesperClient() {
+    }
+
+    public static boolean sprintToggled() {
+        return sprintToggled;
+    }
+
+    public static boolean sneakToggled() {
+        return sneakToggled;
     }
 
     public static void init() {
@@ -106,6 +117,28 @@ public final class VesperClient {
                 .build());
     }
 
+    private static void updateHoldToggles(Minecraft client) {
+        if (client.options == null) {
+            return;
+        }
+
+        if (VesperMod.config().enabled(VesperModule.TOGGLE_SPRINT)) {
+            while (client.options.keySprint.consumeClick()) {
+                sprintToggled = !sprintToggled;
+            }
+        } else {
+            sprintToggled = false;
+        }
+
+        if (VesperMod.config().enabled(VesperModule.TOGGLE_SNEAK)) {
+            while (client.options.keyShift.consumeClick()) {
+                sneakToggled = !sneakToggled;
+            }
+        } else {
+            sneakToggled = false;
+        }
+    }
+
     private static void applyFullbright(Minecraft client) {
         if (client.options == null) {
             return;
@@ -131,6 +164,7 @@ public final class VesperClient {
         }
 
         applyFullbright(client);
+        updateHoldToggles(client);
 
         if (menuKey == null) {
             return;
