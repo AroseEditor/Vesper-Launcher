@@ -71,7 +71,13 @@
                 <TextBlock Text="MOD LOADER" Classes="label"/>
                 <ComboBox Classes="field"
                           ItemsSource="{Binding AvailableLoaders}"
-                          SelectedItem="{Binding SelectedLoader, Mode=TwoWay}"/>
+                          SelectedItem="{Binding SelectedLoaderChoice, Mode=TwoWay}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:LoaderChoice">
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
               </StackPanel>
             </Grid>
 

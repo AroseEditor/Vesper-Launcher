@@ -16,6 +16,8 @@ public enum VersionCategory
     Vesper,
 }
 
+public sealed record LoaderChoice(LoaderKind Kind, string Label);
+
 public partial class PlayViewModel : ObservableObject
 {
     private readonly VesperPaths _paths;
@@ -38,6 +40,9 @@ public partial class PlayViewModel : ObservableObject
 
     [ObservableProperty]
     private LoaderKind? _selectedLoader = LoaderKind.Vanilla;
+
+    [ObservableProperty]
+    private LoaderChoice? _selectedLoaderChoice;
 
     [ObservableProperty]
     private LoaderVersion? _selectedLoaderVersion;
@@ -97,7 +102,7 @@ public partial class PlayViewModel : ObservableObject
 
     public ObservableCollection<MinecraftVersionInfo> GroupVersions { get; } = [];
 
-    public ObservableCollection<LoaderKind> AvailableLoaders { get; } = [];
+    public ObservableCollection<LoaderChoice> AvailableLoaders { get; } = [];
 
     public ObservableCollection<LoaderVersion> LoaderVersions { get; } = [];
 
@@ -466,22 +471,18 @@ public partial class PlayViewModel : ObservableObject
 
         var previous = SelectedLoader;
 
-        for (var i = AvailableLoaders.Count - 1; i >= 0; i--)
-        {
-            if (!desired.Contains(AvailableLoaders[i]))
-                AvailableLoaders.RemoveAt(i);
-        }
-
+        AvailableLoaders.Clear();
         foreach (var kind in desired)
-        {
-            if (!AvailableLoaders.Contains(kind))
-                AvailableLoaders.Add(kind);
-        }
+            AvailableLoaders.Add(new LoaderChoice(kind, LoaderLabel(kind)));
 
-        SelectedLoader = previous is not null && AvailableLoaders.Contains(previous.Value)
-            ? previous
-            : AvailableLoaders.FirstOrDefault();
+        SelectedLoaderChoice = AvailableLoaders.FirstOrDefault(c => c.Kind == previous)
+            ?? AvailableLoaders.FirstOrDefault();
     }
+
+    private string LoaderLabel(LoaderKind kind) =>
+        Category == VersionCategory.Vesper
+            ? "Enhanced (" + kind.DisplayName() + ")"
+            : kind.DisplayName();
 
     private async Task RefreshLoaderVersionsAsync()
     {
@@ -569,4 +570,7 @@ public partial class PlayViewModel : ObservableObject
         OnPropertyChanged(nameof(NeedsLoaderVersion));
         _ = RefreshLoaderVersionsAsync();
     }
+
+    partial void OnSelectedLoaderChoiceChanged(LoaderChoice? value) =>
+        SelectedLoader = value?.Kind ?? LoaderKind.Vanilla;
 }
