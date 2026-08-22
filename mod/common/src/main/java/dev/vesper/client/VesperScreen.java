@@ -122,8 +122,22 @@ public class VesperScreen extends Screen {
             }).bounds(startX + cellWidth + 8, this.height - 62, cellWidth, 20).build());
         }
 
+        addRenderableWidget(Button.builder(Component.literal("Move HUD"),
+                        button -> minecraft.setScreen(new VesperHudEditScreen(this)))
+                .bounds(this.width / 2 - 124, this.height - 32, 120, 20).build());
+
         addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
-                .bounds((this.width - 120) / 2, this.height - 32, 120, 20).build());
+                .bounds(this.width / 2 + 4, this.height - 32, 120, 20).build());
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == VesperMod.MENU_KEY) {
+            onClose();
+            return true;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     private static Component moduleLabel(VesperConfig config, VesperModule module) {
