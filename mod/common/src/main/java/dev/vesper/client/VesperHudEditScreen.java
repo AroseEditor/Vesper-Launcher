@@ -34,7 +34,8 @@ public final class VesperHudEditScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        graphics.drawCenteredString(font, "Drag modules to move them. Right Shift or Done to finish.",
+        graphics.drawCenteredString(font,
+                "Drag to move, scroll to resize. Right Shift or Done to finish.",
                 width / 2, 12, 0xFFB57EDC);
 
         VesperConfig config = VesperMod.config();
@@ -86,6 +87,26 @@ public final class VesperHudEditScreen extends Screen {
         }
 
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        VesperConfig config = VesperMod.config();
+        HudModule[] modules = HudModule.values();
+
+        for (int i = modules.length - 1; i >= 0; i--) {
+            HudModule module = modules[i];
+            HudElement element = config.element(module);
+
+            if (element.contains((int) mouseX, (int) mouseY,
+                    font.width(module.label()), LINE_HEIGHT)) {
+                element.scale = Math.max(0.5f, Math.min(2.0f,
+                        element.scale + (float) scrollY * 0.1f));
+                return true;
+            }
+        }
+
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

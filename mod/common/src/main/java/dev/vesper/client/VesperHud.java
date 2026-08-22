@@ -241,6 +241,16 @@ public final class VesperHud {
             GuiGraphics graphics, Minecraft client, HudModule module, String value, int colour) {
 
         HudElement element = VesperMod.config().element(module);
-        graphics.drawString(client.font, value, element.x, element.y, colour);
+
+        if (element.scale == 1f) {
+            graphics.drawString(client.font, value, element.x, element.y, colour);
+            return;
+        }
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(element.x, element.y, 0);
+        graphics.pose().scale(element.scale, element.scale, 1f);
+        graphics.drawString(client.font, value, 0, 0, colour);
+        graphics.pose().popPose();
     }
 }
