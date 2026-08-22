@@ -25,6 +25,11 @@ public final class VesperHudEditScreen extends Screen {
 
     @Override
     protected void init() {
+        addRenderableWidget(Button.builder(Component.literal("Reset layout"), button -> {
+            VesperMod.config().hud = VesperConfig.defaultHud();
+            VesperMod.save();
+        }).bounds(width / 2 - 100, height - 52, 200, 20).build());
+
         addRenderableWidget(Button.builder(Component.literal("Done"), button -> onClose())
                 .bounds(width / 2 - 100, height - 28, 200, 20)
                 .build());
