@@ -121,7 +121,37 @@ public sealed class VesperTheme
         },
     };
 
-    public static IReadOnlyList<VesperTheme> BuiltIn() => [MauveBlack(), MidnightEmber(), Basalt()];
+    public static VesperTheme LunarNight() => new()
+    {
+        Name = "Lunar Night",
+        IsBuiltIn = true,
+        LogoHue = -95,
+        Colors = new Dictionary<string, string>
+        {
+            ["bgBase"] = "#07090D",
+            ["bgElevated"] = "#13141A",
+            ["bgCard"] = "#1A1B21",
+            ["bgHover"] = "#22232C",
+            ["borderSubtle"] = "#24262E",
+            ["borderStrong"] = "#33363F",
+            ["accent"] = "#1FC7FF",
+            ["accentHover"] = "#55D6FF",
+            ["accentDeep"] = "#0E9BCB",
+            ["accentBreath"] = "#36CDFF",
+            ["accentContrast"] = "#04121A",
+            ["textPrimary"] = "#EDEEF3",
+            ["textMuted"] = "#B1B3C0",
+            ["textFaint"] = "#6B6F7C",
+            ["success"] = "#3FD07A",
+            ["warning"] = "#FFC842",
+            ["danger"] = "#FF4D4F",
+            ["debug"] = "#5FB2D6",
+            ["trace"] = "#9B8CF0",
+        },
+    };
+
+    public static IReadOnlyList<VesperTheme> BuiltIn() =>
+        [MauveBlack(), MidnightEmber(), Basalt(), LunarNight()];
 
     public string Resolve(string token)
     {
