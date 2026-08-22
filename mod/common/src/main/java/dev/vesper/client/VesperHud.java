@@ -3,6 +3,8 @@ package dev.vesper.client;
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.vesper.VesperMod;
 import dev.vesper.config.VesperConfig;
+import dev.vesper.hud.HudElement;
+import dev.vesper.hud.HudModule;
 import dev.vesper.module.VesperModule;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -62,29 +64,24 @@ public final class VesperHud {
         }
 
         VesperConfig config = VesperMod.config();
-        int x = 4;
-        int y = 4;
 
         if (config.enabled(VesperModule.FPS_DISPLAY)) {
-            y = line(graphics, client, x, y, client.getFps() + " fps", ACCENT);
+            text(graphics, client, HudModule.FPS, client.getFps() + " fps", ACCENT);
         }
 
         if (config.enabled(VesperModule.COORDINATES)) {
-            String position = String.format(
+            text(graphics, client, HudModule.COORDINATES, String.format(
                     "%.1f  %.1f  %.1f",
-                    client.player.getX(), client.player.getY(), client.player.getZ());
-            y = line(graphics, client, x, y, position, TEXT);
+                    client.player.getX(), client.player.getY(), client.player.getZ()), TEXT);
         }
 
         if (config.enabled(VesperModule.DIRECTION)) {
-            y = line(graphics, client, x, y,
-                    client.player.getDirection().getName(), TEXT);
+            text(graphics, client, HudModule.DIRECTION, client.player.getDirection().getName(), TEXT);
         }
 
         if (config.enabled(VesperModule.CPS_DISPLAY)) {
-            String cps = clicksWithinLastSecond(leftClicks) + " | "
-                    + clicksWithinLastSecond(rightClicks) + " cps";
-            y = line(graphics, client, x, y, cps, TEXT);
+            text(graphics, client, HudModule.CPS, clicksWithinLastSecond(leftClicks) + " | "
+                    + clicksWithinLastSecond(rightClicks) + " cps", TEXT);
         }
 
         if (config.enabled(VesperModule.PING_DISPLAY)) {
@@ -98,27 +95,27 @@ public final class VesperHud {
                 }
             }
 
-            y = line(graphics, client, x, y, ping + " ms", TEXT);
+            text(graphics, client, HudModule.PING, ping + " ms", TEXT);
         }
 
         if (config.enabled(VesperModule.REACH_DISPLAY)
                 && System.currentTimeMillis() - lastReachTime < 3000L) {
-            y = line(graphics, client, x, y, String.format("%.2f blocks", lastReach), TEXT);
+            text(graphics, client, HudModule.REACH, String.format("%.2f blocks", lastReach), TEXT);
         }
 
         if (config.enabled(VesperModule.SERVER_ADDRESS) && client.getCurrentServer() != null) {
-            y = line(graphics, client, x, y, client.getCurrentServer().ip, TEXT);
+            text(graphics, client, HudModule.SERVER, client.getCurrentServer().ip, TEXT);
         }
 
         if (config.enabled(VesperModule.MEMORY_DISPLAY)) {
             Runtime runtime = Runtime.getRuntime();
             long used = (runtime.totalMemory() - runtime.freeMemory()) / 1048576L;
             long max = runtime.maxMemory() / 1048576L;
-            y = line(graphics, client, x, y, used + " / " + max + " MB", TEXT);
+            text(graphics, client, HudModule.MEMORY, used + " / " + max + " MB", TEXT);
         }
 
         if (config.enabled(VesperModule.TIME_DISPLAY)) {
-            y = line(graphics, client, x, y, LocalTime.now().format(CLOCK), TEXT);
+            text(graphics, client, HudModule.TIME, LocalTime.now().format(CLOCK), TEXT);
         }
 
         if (config.enabled(VesperModule.BIOME_DISPLAY)) {
@@ -127,7 +124,7 @@ public final class VesperHud {
                     .unwrapKey()
                     .map(key -> key.location().getPath())
                     .orElse("unknown");
-            line(graphics, client, x, y, biome, TEXT);
+            text(graphics, client, HudModule.BIOME, biome, TEXT);
         }
 
         if (config.enabled(VesperModule.KEYSTROKES)) {
@@ -239,10 +236,10 @@ public final class VesperHud {
         }
     }
 
-    private static int line(
-            GuiGraphics graphics, Minecraft client, int x, int y, String text, int colour) {
+    private static void text(
+            GuiGraphics graphics, Minecraft client, HudModule module, String value, int colour) {
 
-        graphics.drawString(client.font, text, x, y, colour);
-        return y + LINE_HEIGHT;
+        HudElement element = VesperMod.config().element(module);
+        graphics.drawString(client.font, value, element.x, element.y, colour);
     }
 }

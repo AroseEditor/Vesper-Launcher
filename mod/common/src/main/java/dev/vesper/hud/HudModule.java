@@ -10,7 +10,9 @@ public enum HudModule {
     ARMOUR("Armour", false),
     TIME("Time", false),
     BIOME("Biome", false),
-    MEMORY("Memory", false);
+    MEMORY("Memory", false),
+    REACH("Reach", false),
+    SERVER("Server address", false);
 
     private final String label;
     private final boolean enabledByDefault;
