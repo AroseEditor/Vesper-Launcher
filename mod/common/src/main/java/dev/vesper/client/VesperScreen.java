@@ -104,6 +104,12 @@ public class VesperScreen extends Screen {
         }
 
         if (category == ModuleCategory.VISUAL) {
+            addRenderableWidget(Button.builder(zoomLabel(config), button -> {
+                config.zoomFov = nextZoom(config.zoomFov);
+                VesperMod.save();
+                button.setMessage(zoomLabel(config));
+            }).bounds(startX, this.height - 88, cellWidth, 20).build());
+
             addRenderableWidget(Button.builder(blurLabel(config), button -> {
                 config.blurPreset = config.blurPreset.next();
                 VesperMod.save();
@@ -150,6 +156,22 @@ public class VesperScreen extends Screen {
 
     private static Component particleLabel(VesperConfig config) {
         return Component.literal("Particle limit: " + config.particleLimit);
+    }
+
+    private static Component zoomLabel(VesperConfig config) {
+        return Component.literal("Zoom FOV: " + Math.round(config.zoomFov));
+    }
+
+    private static float nextZoom(float current) {
+        float[] steps = {15f, 20f, 24f, 30f, 40f};
+
+        for (int i = 0; i < steps.length; i++) {
+            if (Math.abs(current - steps[i]) < 0.5f) {
+                return steps[(i + 1) % steps.length];
+            }
+        }
+
+        return steps[0];
     }
 
     private static Component blurLabel(VesperConfig config) {
