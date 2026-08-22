@@ -15,6 +15,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public final class VesperClient {
 
@@ -57,7 +59,23 @@ public final class VesperClient {
             }
         }
 
+        if (action == 1 && button == 0
+                && VesperMod.config().enabled(VesperModule.REACH_DISPLAY)
+                && client.player != null && client.crosshairPickEntity != null) {
+            VesperHud.recordReach(reachTo(client.player, client.crosshairPickEntity));
+        }
+
         return EventResult.pass();
+    }
+
+    private static double reachTo(net.minecraft.world.entity.player.Player player,
+                                  net.minecraft.world.entity.Entity target) {
+        Vec3 eye = player.getEyePosition();
+        AABB box = target.getBoundingBox();
+        double dx = Math.max(Math.max(box.minX - eye.x, 0.0), eye.x - box.maxX);
+        double dy = Math.max(Math.max(box.minY - eye.y, 0.0), eye.y - box.maxY);
+        double dz = Math.max(Math.max(box.minZ - eye.z, 0.0), eye.z - box.maxZ);
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     public static KeyMapping menuKey() {

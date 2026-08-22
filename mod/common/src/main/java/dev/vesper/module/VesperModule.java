@@ -45,6 +45,8 @@ public enum VesperModule {
             "Shows which way you are facing."),
     PING_DISPLAY("Ping", ModuleCategory.HUD, false,
             "Shows your latency to the current server."),
+    REACH_DISPLAY("Reach", ModuleCategory.HUD, false,
+            "Shows the block distance of your last melee hit."),
     KEYSTROKES("Keystrokes", ModuleCategory.HUD, false,
             "Draws your movement keys and mouse buttons."),
     ARMOUR_DISPLAY("Armour", ModuleCategory.HUD, false,

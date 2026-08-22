@@ -25,6 +25,9 @@ public final class VesperHud {
     private static final List<Long> leftClicks = new ArrayList<>();
     private static final List<Long> rightClicks = new ArrayList<>();
 
+    private static double lastReach;
+    private static long lastReachTime;
+
     private VesperHud() {
     }
 
@@ -34,6 +37,11 @@ public final class VesperHud {
 
     public static void recordClick(boolean left) {
         (left ? leftClicks : rightClicks).add(System.currentTimeMillis());
+    }
+
+    public static void recordReach(double distance) {
+        lastReach = distance;
+        lastReachTime = System.currentTimeMillis();
     }
 
     private static int clicksWithinLastSecond(List<Long> clicks) {
@@ -77,6 +85,25 @@ public final class VesperHud {
             String cps = clicksWithinLastSecond(leftClicks) + " | "
                     + clicksWithinLastSecond(rightClicks) + " cps";
             y = line(graphics, client, x, y, cps, TEXT);
+        }
+
+        if (config.enabled(VesperModule.PING_DISPLAY)) {
+            int ping = 0;
+
+            if (client.getConnection() != null) {
+                var info = client.getConnection().getPlayerInfo(client.player.getUUID());
+
+                if (info != null) {
+                    ping = info.getLatency();
+                }
+            }
+
+            y = line(graphics, client, x, y, ping + " ms", TEXT);
+        }
+
+        if (config.enabled(VesperModule.REACH_DISPLAY)
+                && System.currentTimeMillis() - lastReachTime < 3000L) {
+            y = line(graphics, client, x, y, String.format("%.2f blocks", lastReach), TEXT);
         }
 
         if (config.enabled(VesperModule.MEMORY_DISPLAY)) {
