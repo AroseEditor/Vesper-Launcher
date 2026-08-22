@@ -80,7 +80,7 @@ public class ProfileManagerTests
     [Theory]
     [InlineData(LoaderKind.Vanilla, false, "Vanilla")]
     [InlineData(LoaderKind.Fabric, false, "Vanilla + Fabric")]
-    [InlineData(LoaderKind.Forge, true, "Vesper + Forge")]
+    [InlineData(LoaderKind.Forge, true, "Enhanced + Forge")]
     [InlineData(LoaderKind.NeoForge, false, "Vanilla + NeoForge")]
     public void ProfileLabelDescribesTheStack(LoaderKind loader, bool vesper, string expected)
     {

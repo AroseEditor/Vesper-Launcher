@@ -86,7 +86,7 @@ public sealed class Profile
     {
         get
         {
-            var prefix = IsVesperProfile ? "Vesper" : "Vanilla";
+            var prefix = IsVesperProfile ? "Enhanced" : "Vanilla";
             return Loader == LoaderKind.Vanilla && !IsVesperProfile
                 ? "Vanilla"
                 : $"{prefix} + {Loader.DisplayName()}";

@@ -131,11 +131,11 @@ public partial class PlayViewModel : ObservableObject
             ? "Pick a version"
             : EffectiveLoader == LoaderKind.Vanilla
                 ? "Vanilla " + SelectedVersion.Id
-                : $"{(Category == VersionCategory.Vesper ? "Vesper" : "Vanilla")} + " +
+                : $"{(Category == VersionCategory.Vesper ? "Enhanced" : "Vanilla")} + " +
                   $"{EffectiveLoader.DisplayName()} {SelectedVersion.Id}";
 
     public string CategoryBlurb => Category == VersionCategory.Vesper
-        ? "Vesper profiles bundle our client mod and a curated performance pack. Fabric or NeoForge, 1.21 and newer."
+        ? "Enhanced instances bundle our client mod and a curated performance pack. Fabric, Forge or NeoForge on supported versions."
         : "Every version Mojang has published, with any loader you like.";
 
     public async Task LoadAsync(CancellationToken cancellationToken = default)
