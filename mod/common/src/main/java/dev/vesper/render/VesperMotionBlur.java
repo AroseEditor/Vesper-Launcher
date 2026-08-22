@@ -6,12 +6,20 @@ import dev.vesper.config.VesperConfig;
 import dev.vesper.module.VesperModule;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
 
 public final class VesperMotionBlur {
+
+    private static final double TELEPORT_THRESHOLD_SQ = 400.0;
 
     private static final MotionBlurRenderer RENDERER = new MotionBlurRenderer();
 
     private static long lastFrameNanos;
+    private static ResourceKey<Level> lastDimension;
+    private static double lastX;
+    private static double lastY;
+    private static double lastZ;
 
     private VesperMotionBlur() {
     }
@@ -30,6 +38,12 @@ public final class VesperMotionBlur {
             RENDERER.reset();
             lastFrameNanos = 0L;
             return;
+        }
+
+        if (movedDiscontinuously(client)) {
+            RENDERER.reset();
+            VesperMod.motionBlur().reset();
+            lastFrameNanos = 0L;
         }
 
         float delta = measureDelta();
@@ -57,6 +71,30 @@ public final class VesperMotionBlur {
     public static void invalidate() {
         RENDERER.reset();
         lastFrameNanos = 0L;
+    }
+
+    private static boolean movedDiscontinuously(Minecraft client) {
+        boolean reset = false;
+        ResourceKey<Level> dimension = client.level.dimension();
+
+        if (!dimension.equals(lastDimension)) {
+            lastDimension = dimension;
+            reset = true;
+        }
+
+        double dx = client.player.getX() - lastX;
+        double dy = client.player.getY() - lastY;
+        double dz = client.player.getZ() - lastZ;
+
+        if (dx * dx + dy * dy + dz * dz > TELEPORT_THRESHOLD_SQ) {
+            reset = true;
+        }
+
+        lastX = client.player.getX();
+        lastY = client.player.getY();
+        lastZ = client.player.getZ();
+
+        return reset;
     }
 
     private static float measureDelta() {
